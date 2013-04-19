@@ -1,0 +1,6 @@
+@font-face {
+    font-family: 'KulminoituvaRegular';
+    src: url('http://www.miketaylr.com/f/kulminoituva.ttf');
+}
+
+  ctx.font         = '68px KulminoituvaRegular';
