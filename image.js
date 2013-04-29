@@ -4,19 +4,35 @@
 	var TO_RADIANS = Math.PI/180; 
 
 	function vImage(trs){
-		trs.runtime.images = { objects: [], atlases: [], loaded: [] };
+		trs.runtime.images = { objects: [], atlases: [], loaded: [], textures: [] };
+
 		trs.LoadImage = load;
 		trs.AddAtlas = addAtlas;
 		trs.DrawAtlas = drawAtlas;
 		trs.DrawAtlasAngle = drawAtlasRotated;
 		trs.DrawImage = drawImage;
 		trs.ImageLoaded = checkLoaded;
+		trs.CreateTexture = createTexture
+		trs.DrawTexture = drawTexture;
+	}
+	function drawTexture(texture, dx, dy, dw, dh)
+	{
+		this.context.drawImage(texture, dx, dy, dw, dh);
+	}
+	function createTexture(w, h)
+	{
+		var img = this.runtime.images;
+		var t = document.createElement("canvas");
+		t.width  = w; t.height = h;
+
+		img.textures.push(t);
+		return t;
 	}
 	function checkLoaded(index)
 	{
 		return this.runtime.images.loaded[index];
 	}
-	function load(location)
+	function load(location, foo)
 	{
 		var img = new Image();   // Создаём новый объект Image
 		img.src = location; // Устанавливаем путь к источнику
@@ -25,6 +41,10 @@
 		img.onload = function(){
 			trs.runtime.images.loaded[index] = true;
 			console.log("image loaded: "+ location);
+			if(typeof foo !== 'undefined')
+			{
+				foo.apply(trs, [trs.runtime.images.objects[index]]);
+			}
 		};
 		this.runtime.images.loaded.push(false);
 		this.runtime.images.objects.push(img);

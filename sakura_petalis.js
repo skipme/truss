@@ -117,6 +117,7 @@
 		for (var i = 0; i < spetalis.petalis.length; i++) {
 			foliumIteration(spetalis, spetalis.petalis[i], dti, this.bounds);
 		};
+		this.update();
 	}
 	
 	function foliumIteration(spetalis, folium, dt, bounds)
@@ -231,6 +232,7 @@
 	}
 	function drawSpetalis(trs, spetalis)
 	{
+		// trs.context.globalCompositeOperation = "lighter";
 		var dn = Date.now();
 		for (var i = 0; i < spetalis.petalis.length; i++) {
 			var folium = spetalis.petalis[i];
@@ -243,6 +245,7 @@
 	  		trs.DrawAtlasAngle(folium.atlas, folium.x, folium.y, 10, 10, folium.angle.now);
 		};
 		trs.context.globalAlpha = 1;
+		trs.context.globalCompositeOperation = "source-over";
 	}
 	function update()
 	{
@@ -261,6 +264,7 @@
 		this.DrawImage(spetalis.background.b3, 0,0, this.bounds.width, this.bounds.height);
 		//
 		drawSpetalis(this, spetalis);
+		this.postEffectA();
 		//
 		//this.DrawImage(spetalis.background.b2, 0,0, this.bounds.width, this.bounds.height);
 		//

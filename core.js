@@ -31,6 +31,10 @@ var truss_o;
   function extendFunction(extendFunction, name, after){
     extendFunctions.push({name:name, after:after, foo:extendFunction});
   }
+  function rnd(min,max)
+  {
+    return min + Math.floor((Math.random()*(max-min)+1));
+  }
   function clone(o) {
      if(!o || 'object' !== typeof o)  {
        return o;
@@ -165,15 +169,16 @@ var truss_o;
   })();
 
   truss_o = {
-    version:"0.1 devTool",
-    options : default_options,
-    option : setOption,
-    say : sayFunction,
-    extendModule : extendFunction,
-    create :createFromCanvas,
-    isFunction:isFunction,
-    uuid:uuid,
-    log:log
+    version: "0.1 devTool",
+    options: default_options,
+    option: setOption,
+    say: sayFunction,
+    rndm: rnd,
+    extendModule: extendFunction,
+    create: createFromCanvas,
+    isFunction: isFunction,
+    uuid: uuid,
+    log: log
   }
 
   window.requestAnimFrame = (function(){
