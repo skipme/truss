@@ -61,7 +61,7 @@
 		trs.SetShadow();
 		trs.context.lineWidth = 1;
 		trs.context.strokeStyle = "#aaFaFa";
-		trs.context.strokeRect(trs.aabb.x+.5,trs.aabb.y+.5,trs.aabb.max_x-trs.aabb.x,trs.aabb.max_y-trs.aabb.y);
+		trs.context.strokeRect(trs.aabb.x+.5-2,trs.aabb.y+.5-2,trs.aabb.max_x-trs.aabb.x+2,trs.aabb.max_y-trs.aabb.y+2);
 	}
 	function updateLayers()
 	{
@@ -76,7 +76,7 @@
 			this.setLayer();
 			this.Clear();
 			this.SetShadow();
-			//this.drawLayer(backgroundlayer);
+			this.drawLayer(backgroundlayer);
 		}else{
 			//this.log(backgroundlayer);
 			this.setLayer(backgroundlayer);
@@ -172,12 +172,12 @@
 		    	this.context.stroke();
 
 		    	this.NodeDisposition(this.objects[i]);
+
 			}
-			if(this.aabb.is_invalidate)
-				this.aabb.is_invalidate = false;
+			// if(this.aabb.is_invalidate)
+			// 	this.aabb.is_invalidate = false;
 			this.context.translate(-this.objs_translate.xoffset,-this.objs_translate.yoffset);
-			// aa bb box
-			drawAABB(this);
+
 
 			this.saveLayer();
 
@@ -186,11 +186,11 @@
 			this.drawLayer(nodelayer);
 		//}
 		// text layer
-			if(!this.runtime.InvalidateTextlayer && this.hasLayerData(textlayer))
-			{
+			//if(!this.runtime.InvalidateTextlayer && this.hasLayerData(textlayer))
+			//{
 				//this.SetShadow();
 				//this.drawLayer(textlayer);
-			} else {
+			//} else {
 				this.runtime.InvalidateTextlayer = false;
 				this.setLayer(textlayer);
 				this.Clear();
@@ -211,6 +211,7 @@
 
 		  				this.context.fillStyle = "rgb(255, 255, 255)";
 		  				this.context.fillText(this.objects[i].label, tx, ty);
+		  				this.AABBboundsUpdate(tx, tx+dim.width, ty, ty+12);
 		  			}
 		  			if(this.objects[i].labelRight !== undefined){
 		  				var dim = this.context.measureText(this.objects[i].labelRight);
@@ -221,13 +222,15 @@
 		  				this.context.fillRect(tx,ty-10,dim.width, 12)
 
 						this.context.fillStyle = "rgb(255, 255, 255)";
-		  				this.context.fillText(this.objects[i].labelRight, this.objects[i].x+this.options.view.node.radius + 4,
-		  				 	this.objects[i].y+this.options.view.node.radius*.5);
+		  				this.context.fillText(this.objects[i].labelRight, tx, ty);
+		  				this.AABBboundsUpdate(tx, tx + dim.width, ty-10 ,ty + 12);
 		  			}
 				}
 				this.context.translate(-this.objs_translate.xoffset,-this.objs_translate.yoffset);
+				// aa bb box
+				drawAABB(this);
 				this.saveLayer();
-			}
+			//}
 		// 
 		if(this.runtime.temporaryConnection)
 		{

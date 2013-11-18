@@ -32,14 +32,16 @@
 
 		//
 		trs.aabb = {x:0, y:0, max_x:0, max_y:0, is_invalidate:false };
+
 		trs.addEvent('NodeDisposition');
 		trs.addEventCallback('NodeDisposition', NodeInvalidate);
-		trs.NodeDisposition = NodeDisposition_;
+		trs.NodeDisposition = NodeDispositionAABB;
+		trs.AABBboundsUpdate = AABBboundsUpdate;
+
 		// objects xy translation
 		trs.objs_translate = {xoffset:0,yoffset:0};
 		trs.setProps = setProps;
 		trs.setPropsI = setPropsI;
-
 	}
 	function NodeInvalidate(node)
 	{
@@ -47,7 +49,14 @@
 		this.aabb.max_x = this.aabb.max_y = 0;
 		this.aabb.is_invalidate = true;
 	}
-	function NodeDisposition_(node)
+	function AABBboundsUpdate(left, right, top, bottom)
+	{
+		this.aabb.x = Math.min(left + this.objs_translate.xoffset, this.aabb.x );
+		this.aabb.y = Math.min(top + this.objs_translate.yoffset, this.aabb.y);
+		this.aabb.max_x = Math.max(right + this.objs_translate.xoffset, this.aabb.max_x);
+		this.aabb.max_y = Math.max(bottom + this.objs_translate.yoffset, this.aabb.max_y);
+	}
+	function NodeDispositionAABB(node)
 	{
 		this.aabb.x = Math.min(node.x - this.options.view.node.radius + this.objs_translate.xoffset, this.aabb.x);
 		this.aabb.y = Math.min(node.y - this.options.view.node.radius + this.objs_translate.yoffset, this.aabb.y);
