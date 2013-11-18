@@ -31,6 +31,10 @@ var truss_o;
   function extendFunction(extendFunction, name, after){
     extendFunctions.push({name:name, after:after, foo:extendFunction});
   }
+  function rnd(min,max)
+  {
+    return min + Math.floor((Math.random()*(max-min)+1));
+  }
   function clone(o) {
      if(!o || 'object' !== typeof o)  {
        return o;
@@ -165,15 +169,16 @@ var truss_o;
   })();
 
   truss_o = {
-    version:"0.1 devTool",
-    options : default_options,
-    option : setOption,
-    say : sayFunction,
-    extendModule : extendFunction,
-    create :createFromCanvas,
-    isFunction:isFunction,
-    uuid:uuid,
-    log:log
+    version: "0.1 devTool",
+    options: default_options,
+    option: setOption,
+    say: sayFunction,
+    rndm: rnd,
+    extendModule: extendFunction,
+    create: createFromCanvas,
+    isFunction: isFunction,
+    uuid: uuid,
+    log: log
   }
 
   window.requestAnimFrame = (function(){
@@ -442,6 +447,132 @@ var truss_o;
 		return(x<hitX&&x+w>=hitX&&y<hitY&&y+h>=hitY);
 	}
 	truss_o.extendModule(cMenu, "view.Menu", ["view.Input", "view.Interface", "core.Events", "core.runtime"]);
+}());// "demoMSPH.js"
+(function(){
+	//"use strict";
+	// var menulayer ='dmeta.menu';
+	var radius = 128;
+
+	function dmetaSpheres(trs)
+	{
+		var iface = {
+			Render:Render,
+			update:update
+		};
+		trs.addViewEngine("DemoMetaspheres", iface);
+
+		var r = trs.runtime;
+		
+
+		r.dmeta = { ovals: [], ovalRadius: radius, gradient: null, dragging: {index: -1, sx: 0, sy: 0, cx: 0, cy: 0} };
+		createMetas(trs, r.dmeta);
+
+		r.dmeta.gradient = trs.MetaPrepareGradient(radius);
+
+		trs.addEventListener("mousedown", mdown);
+		trs.addEventListener("mouseup", mup);
+		trs.addEventListener("mousemove", mmove);
+	}
+	function mdown(e)
+	{
+		var mx = e.pageX-this.bounds.left;
+		var my = e.pageY-this.bounds.top;
+		var dmeta = this.runtime.dmeta;
+
+		dmeta.dragging.index = -1;
+
+		for (var i = 0; i < dmeta.ovals.length; i++) {
+			var centerx = dmeta.ovals[i].x;//+radius;
+			var centery = dmeta.ovals[i].y;//+radius;
+			if(hittest(centerx, centery, 32, mx, my))
+			{
+				dmeta.dragging.index = i;
+				dmeta.dragging.sx = mx;
+				dmeta.dragging.sy = my;
+				dmeta.dragging.cx = mx - dmeta.ovals[i].x;
+				dmeta.dragging.cy = my - dmeta.ovals[i].y;
+
+				this.update();
+				break;
+			}
+		}
+	}
+	function mup(e)
+	{
+		var dmeta = this.runtime.dmeta;
+		dmeta.dragging.index = -1;
+	}
+	function mmove(e)
+	{
+		var mx = e.pageX-this.bounds.left;
+		var my = e.pageY-this.bounds.top;
+		var dmeta = this.runtime.dmeta;
+		if(dmeta.dragging.index >= 0)
+		{
+			var dov = dmeta.ovals[dmeta.dragging.index];
+			dov.x = mx -  dmeta.dragging.cx;
+			dov.y = my -  dmeta.dragging.cy;
+		}
+	}
+	function createMetas(trs, dmeta)
+	{
+		for (var i = 0; i < 10; i++) {
+			dmeta.ovals.push(createMSphere(trs, dmeta));
+		};
+	}
+	function createMSphere(trs, dmeta)
+	{
+		var ms = { x: trs.rndm(12, trs.bounds.width), y: trs.rndm(12, trs.bounds.height)};
+		return ms;
+	}
+	function drawMetas(trs, dmeta)
+	{
+		var d = dmeta.ovalRadius * 2;
+		for (var i = 0; i < dmeta.ovals.length; i++) {
+			trs.MetaDrawGradient(dmeta.gradient, dmeta.ovals[i].x, dmeta.ovals[i].y, d, d);
+		};
+	}
+	function update()
+	{
+		// this.invalidateLayer(textlayer);
+		// this.invalidateLayer(menulayer);
+	}
+	function Render()
+	{
+		// this.setLayer();
+		this.Clear();
+		//
+		 
+		drawMetas(this, this.runtime.dmeta);
+		this.MetaPostProcess();
+		this.postEffectA();
+		//
+		this.context.fillStyle = "#ffffff";
+		this.SetShadow(0,0,6,"#000000");
+		this.context.fillText(' |||  ' +this.fps.rate.toFixed(2)+' fps', 14,14);
+		//this.context.fillText('', 14, this.bounds.height - 96);
+		this.SetShadow();
+
+		// if(!this.hasLayerData(menulayer))
+		// {
+		// 	this.setLayer(menulayer);
+		// 	this.Clear();
+		// 	this.RenderDisplayMenuText(menulayer, true);
+		// 	this.RenderDisplayMenuBackground(menulayer);
+		// 	this.RenderDisplayMenuText(menulayer);
+		// 	this.saveLayer();
+		// }
+
+		// this.setLayer();
+		// this.drawLayer(menulayer);
+	}
+	function hittest(x,y,radius,hitX,hitY) {
+		var dx = x - hitX;
+		var dy = y - hitY;
+		
+		return(dx*dx + dy*dy < radius*radius*4);
+	}
+	truss_o.extendModule(dmetaSpheres, "view.DMetaspheres", ["view.Interface", "view.Layers", "objects.Tree", "view.Structure", "core.runtime", "view.Menu", "extBlur", "view.Metaspheres"]);
 }());// "dispatcher_simple.js"
 (function(){
 	function simpleDispatcher(trs){
@@ -501,6 +632,8 @@ var truss_o;
 				// selected node
 				if(typeof data !== 'undefined' && data>=0)
 				{
+					if(data == this.selectedNode)
+						this.selectedNode = -1;
 					this.RemoveObject(data);
 				}
 			break;
@@ -945,19 +1078,35 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 	var TO_RADIANS = Math.PI/180; 
 
 	function vImage(trs){
-		trs.runtime.images = { objects: [], atlases: [], loaded: [] };
+		trs.runtime.images = { objects: [], atlases: [], loaded: [], textures: [] };
+
 		trs.LoadImage = load;
 		trs.AddAtlas = addAtlas;
 		trs.DrawAtlas = drawAtlas;
 		trs.DrawAtlasAngle = drawAtlasRotated;
 		trs.DrawImage = drawImage;
 		trs.ImageLoaded = checkLoaded;
+		trs.CreateTexture = createTexture
+		trs.DrawTexture = drawTexture;
+	}
+	function drawTexture(texture, dx, dy, dw, dh)
+	{
+		this.context.drawImage(texture, dx, dy, dw, dh);
+	}
+	function createTexture(w, h)
+	{
+		var img = this.runtime.images;
+		var t = document.createElement("canvas");
+		t.width  = w; t.height = h;
+
+		img.textures.push(t);
+		return t;
 	}
 	function checkLoaded(index)
 	{
 		return this.runtime.images.loaded[index];
 	}
-	function load(location)
+	function load(location, foo)
 	{
 		var img = new Image();   // Создаём новый объект Image
 		img.src = location; // Устанавливаем путь к источнику
@@ -966,6 +1115,10 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 		img.onload = function(){
 			trs.runtime.images.loaded[index] = true;
 			console.log("image loaded: "+ location);
+			if(typeof foo !== 'undefined')
+			{
+				foo.apply(trs, [trs.runtime.images.objects[index]]);
+			}
 		};
 		this.runtime.images.loaded.push(false);
 		this.runtime.images.objects.push(img);
@@ -1153,6 +1306,153 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 		return -1;
 	}
 	truss_o.extendModule(cLayers, "view.Layers", "view.Interface");
+}());// "metaspheres.js"
+(function(){
+	//"use strict";
+	var threshold = 230;
+	function metaSpheres(trs)
+	{
+		var r = trs.runtime;
+		r.metaSpheres = { gradients: [], tex: trs.CreateTexture(trs.bounds.width, trs.bounds.height) };
+	
+		trs.MetaPrepareGradient = prepareOval;
+		trs.MetaDrawGradient = drawOval;
+		trs.MetaPostProcess = postProcess;
+		trs.postEffectA = postEffectA;
+		r.metaSpheres.patIMG = trs.LoadImage('img/pattern.png', function(image){
+			r.metaSpheres.patFS = trs.context.createPattern(image, "repeat")
+		});
+		
+	}
+	function prepareOval(radius)
+	{
+		var tex = this.CreateTexture(radius * 2, radius * 2);
+		var tctx = tex.getContext("2d");
+		var grad = tctx.createRadialGradient(
+                    radius,
+                    radius,
+                    1,
+                    radius,
+                    radius,
+                    radius
+                    );
+		colour = 
+		'hsla(' + Math.round(Math.random() * 360) + ', 80%, 60%';
+		// grad.addColorStop(0, 'rgba(255,255,255, 1)');
+  //       grad.addColorStop(1, 'rgba(255,255,255, 0)');
+        grad.addColorStop(0, colour + ',1)');
+        grad.addColorStop(1, colour + ',0)');
+        tctx.fillStyle = grad;
+        tctx.beginPath();
+        tctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
+        tctx.closePath();
+        tctx.fill();
+
+        this.runtime.metaSpheres.gradients.push(tex);
+
+        return this.runtime.metaSpheres.gradients.length - 1;
+	}
+	function drawOval(grad, x, y, w, h)
+	{
+		var grad = this.runtime.metaSpheres.gradients[grad];
+		this.DrawTexture(grad, x-grad.width*.5, y-grad.height*.5, w, h);
+	}
+	function postProcess() 
+	{
+        var imageData = this.context.getImageData(0, 0, this.bounds.width, this.bounds.height),
+            pix = imageData.data;
+
+        for (var i = 0, n = pix.length; i < n; i += 4) {
+            if(pix[i + 3] < threshold)(pix[i + 3] *= .2222);
+
+        }
+
+        this.context.putImageData(imageData, 0, 0);
+    };
+    function postEffectA()
+    {
+    	if(typeof this.runtime.metaSpheres.patFS === 'undefined')
+    		return;
+		 this.context.globalCompositeOperation = "darken";
+		 this.context.fillStyle = this.runtime.metaSpheres.patFS;
+		 this.context.fillRect(0, 0, this.bounds.width, this.bounds.height);
+		 this.context.globalCompositeOperation = "source-over";
+		 this.context.fillStyle = "rgb(255, 255, 255)"
+    }
+    function postEffectA_()
+    {
+    	var pixw = 4;
+    	var skipp = false;
+
+    	var skipx = false;
+		var skipy = false;
+
+        var imageData = this.context.getImageData(0, 0, this.bounds.width, this.bounds.height);
+  //       var pix = imageData.data;
+  //       var step = pix.length / pixw;
+		// for (var i = 0; i < pix.length; i+=pixw) {
+		// 	var index = i * 4;
+		
+		// 	for (var p = 0; p < pixw; p++) {
+		// 		 pix[index +p*this.bounds.width + 4] = .02222;
+		// 	};
+		
+		// };
+
+		var o = conv(imageData, [ 1/9, 1/9, 1/9,
+    1/9, 1/9, 1/9,
+    1/9, 1/9, 1/9 ], 0, this.runtime.metaSpheres.tex);
+		(this.runtime.metaSpheres.tex.getContext('2d')).putImageData(o, 0, 0);
+		this.context.globalCompositeOperation = "lighter";
+		this.Clear();
+		 this.context.drawImage(this.runtime.metaSpheres.tex,0,0);
+        // this.context.putImageData(o, 0, 0);
+    }
+    function conv(pixels, weights, opaque,tex) {
+	  var side = Math.round(Math.sqrt(weights.length));
+	  var halfSide = Math.floor(side/2);
+	  var src = pixels.data;
+	  var sw = pixels.width;
+	  var sh = pixels.height;
+	  // pad output by the convolution matrix
+	  var w = sw;
+	  var h = sh;
+	   var output = (tex.getContext('2d')).createImageData(w, h);
+	   var dst = output.data;
+	  //var dst = src;
+	  // go through the destination image pixels
+	  var alphaFac = opaque ? 1 : 0;
+	  for (var y=0; y<h; y++) {
+	    for (var x=0; x<w; x++) {
+	      var sy = y;
+	      var sx = x;
+	      var dstOff = (y*w+x)*4;
+	      // calculate the weighed sum of the source image pixels that
+	      // fall under the convolution matrix
+	      var r=0, g=0, b=0, a=0;
+	      for (var cy=0; cy<side; cy++) {
+	        for (var cx=0; cx<side; cx++) {
+	          var scy = sy + cy - halfSide;
+	          var scx = sx + cx - halfSide;
+	          if (scy >= 0 && scy < sh && scx >= 0 && scx < sw) {
+	            var srcOff = (scy*sw+scx)*4;
+	            var wt = weights[cy*side+cx];
+	            r += src[srcOff] * wt;
+	            g += src[srcOff+1] * wt;
+	            b += src[srcOff+2] * wt;
+	            a += src[srcOff+3] * wt;
+	          }
+	        }
+	      }
+	      dst[dstOff] = r;
+	      dst[dstOff+1] = g;
+	      dst[dstOff+2] = b;
+	      dst[dstOff+3] = a + alphaFac*(255-a);
+	    }
+	  }
+	  return output;
+	};
+	truss_o.extendModule(metaSpheres, "view.Metaspheres", ["view.Images", "view.Interface", "view.Layers", "core.Events", "core.runtime"]);
 }());// "mo-test.js"
 truss_o.option('test2', "sayno");
 truss_o.say();
@@ -1428,12 +1728,12 @@ truss_o.say();
 			update:update
 		};
 		trs.addViewEngine("SakuraPetalis", iface);
-		trs.setViewEngine("SakuraPetalis");
+		//trs.setViewEngine("SakuraPetalis");
 		trs.addLayer(menulayer);
 
 		var r = trs.runtime;
-		r.spetalis = { petalis: [], directionVectors: [], wind: {x: 5, y: 5, speed: 0.3}, dt: 0, 
-		lastInvDate: new Date(), atlasIds: [], invFooDirection: true };
+		r.spetalis = { petalis: [], directionVectors: [], wind: {x: 5, y: 5, speed: 0.24}, dt: 0, 
+		lastInvDate: new Date(), atlasIds: [], invFooDirection: true, flowBatAwait: [] };
 		
 		// load images 
 		var imgId = trs.LoadImage('img/petalis.png');
@@ -1452,7 +1752,8 @@ truss_o.say();
 		r.spetalis.background = { b1: -1, b2: -1};
 		// r.spetalis.background.b1 = trs.LoadImage('img/bg1.png');
 		// r.spetalis.background.b2 = trs.LoadImage('img/bg2.png');
-		r.spetalis.background.b3 = trs.LoadImage('img/cherry_blossom_way_by_photosynthetique-d15f5nd.jpg');
+		//r.spetalis.background.b3 = trs.LoadImage('img/cherry_blossom_way_by_photosynthetique-d15f5nd.jpg');
+		r.spetalis.background.b3 = trs.LoadImage('img/KUx_Ev0KXHI.jpg');
 
 		prepareVectors(r.spetalis);
 		preparePetalis(r.spetalis, trs.bounds);
@@ -1466,24 +1767,24 @@ truss_o.say();
 		trs.AddDisplayMenu("petalisMenu", {items:[
 			{text: 'the links below will opened in this tab', callback: null},
 			{text:'all coded by cerriun', callback: function(){window.location.href='https://github.com/skipme';}}, 
-			{text:'background by photosynthetique.deviantart.com', callback: function(){window.location.href='http://photosynthetique.deviantart.com/art/Cherry-Blossom-Way-69571417';}}, 
+			//{text:'background by photosynthetique.deviantart.com', callback: function(){window.location.href='http://photosynthetique.deviantart.com/art/Cherry-Blossom-Way-69571417';}}, 
 			]});
 		trs.canvas.oncontextmenu = function() {
      		return false;  
 		} 
-		trs.addEventListener("mousedown", function(e)
-			{
-				if(e.which != 1)
-				{
-					var mx = e.pageX-this.bounds.left;
-					var my = e.pageY-this.bounds.top;
-					this.ShowMenu("petalisMenu", mx, my);
-				}
-			});
+		// trs.addEventListener("mousedown", function(e)
+		// 	{
+		// 		if(e.which != 1)
+		// 		{
+		// 			var mx = e.pageX-this.bounds.left;
+		// 			var my = e.pageY-this.bounds.top;
+		// 			this.ShowMenu("petalisMenu", mx, my);
+		// 		}
+		// 	});
 	}
 	function prepareVectors(spetalis)
 	{
-		for (var i = 0; i < 400; i++) 
+		for (var i = 0; i < 200; i++) 
 		{
 			var dv = {x: rnd(-5,5), y: rnd(-5,5), maxX: 0, maxY: 0, minX: 0, minY: 0, incDX: true, incDY: true};
 			if(dv.x === 0 )dv.x = 1;
@@ -1496,10 +1797,14 @@ truss_o.say();
 
 			spetalis.directionVectors.push(dv);
 		};
+		for (var i = 0; i < 5; i++) 
+		{
+			spetalis.flowBatAwait.push(rnd(5000,20000));
+		};
 	}
 	function preparePetalis(spetalis,bounds)
 	{
-		for (var i = 0; i < 900; i++) {
+		for (var i = 0; i < 500; i++) {
 			spetalis.petalis.push(createFolium(spetalis, bounds));
 		};
 	}
@@ -1507,7 +1812,7 @@ truss_o.say();
 	{
 		var folium = { dVector: (rnd(0, spetalis.directionVectors.length)-1), windforce: .1, 
 			atlas: (rnd(0, spetalis.atlasIds.length)-1), angle: {now: rnd(0,120), isInc: true}, x: rnd(0,bounds.width), y: rnd(0,bounds.height)
-			, opacity:rnd(1,20)
+			, opacity: rnd(1,20), wait_until: (new Date) + rnd(0, 1000)
 			};
 
 		return folium;
@@ -1530,10 +1835,18 @@ truss_o.say();
 		for (var i = 0; i < spetalis.petalis.length; i++) {
 			foliumIteration(spetalis, spetalis.petalis[i], dti, this.bounds);
 		};
+		this.update();
 	}
 	
 	function foliumIteration(spetalis, folium, dt, bounds)
 	{
+		// console.log(folium.wait_until)
+		if(folium.wait_until > Date.now())
+		{
+			// console.log('gap')
+			return;
+		}
+
 		var dv = back(dt,1);
 
 		// folium.angle = dv * 120;
@@ -1545,14 +1858,27 @@ truss_o.say();
 		
 
 		if(folium.x > bounds.width)
+		{
 			folium.x = 0;
+			folium.wait_until = Date.now();
+			folium.wait_until += spetalis.flowBatAwait[rnd(0, spetalis.flowBatAwait.length)-1];//rnd(0, 20000);
+			
+		}
 		if(folium.y > bounds.height)
+		{
 			folium.y = 0;
+			folium.wait_until = Date.now();
+			folium.wait_until += spetalis.flowBatAwait[rnd(0, spetalis.flowBatAwait.length)-1];//rnd(0, 20000);
+		}
 
 		if(folium.x < 0)
+		{
 			folium.x = bounds.width;
+		}
 		if(folium.y < 0)
+		{
 			folium.y = bounds.height;
+		}
 	}
 	function petalisIterationA()
 	{
@@ -1624,14 +1950,20 @@ truss_o.say();
 	}
 	function drawSpetalis(trs, spetalis)
 	{
+		// trs.context.globalCompositeOperation = "lighter";
+		var dn = Date.now();
 		for (var i = 0; i < spetalis.petalis.length; i++) {
 			var folium = spetalis.petalis[i];
-
+			if(folium.wait_until > dn)
+			{
+				continue;
+			}
 	  		trs.context.globalAlpha = folium.opacity/20;
 	  		//trs.DrawAtlas(folium.atlas, folium.x, folium.y, 10, 10);
 	  		trs.DrawAtlasAngle(folium.atlas, folium.x, folium.y, 10, 10, folium.angle.now);
 		};
 		trs.context.globalAlpha = 1;
+		trs.context.globalCompositeOperation = "source-over";
 	}
 	function update()
 	{
@@ -1650,6 +1982,7 @@ truss_o.say();
 		this.DrawImage(spetalis.background.b3, 0,0, this.bounds.width, this.bounds.height);
 		//
 		drawSpetalis(this, spetalis);
+		this.postEffectA();
 		//
 		//this.DrawImage(spetalis.background.b2, 0,0, this.bounds.width, this.bounds.height);
 		//
@@ -2254,7 +2587,7 @@ truss_o.say();
 
 		trs.setBackground = setBackground;
 		//trs.ShowMenu("test", 112, 120);
-		trs.CreateTimer(1000/30, flexesIteration);
+		// trs.CreateTimer(1000/30, flexesIteration);
 	}
 	function drawFlexes(trs,flexes)
 	{
@@ -2430,7 +2763,7 @@ truss_o.say();
 		
 		this.setLayer();
 
-		drawAllFlexes(this);
+		// drawAllFlexes(this);
 		
 		this.SetShadow();
 		this.context.fillStyle = "rgb(255, 255, 255)";

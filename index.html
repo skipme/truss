@@ -11,7 +11,7 @@
 	<script type="text/javascript" src="objtree.js"></script>
 	<script src="view.js"></script>
 	<script type="text/javascript" src="layers.js"></script>
-   	<!-- <script src="viewdebug.js"></script> !-->
+   	
    	<script src="structure.js"></script>
    	<script src="animate.js"></script>
     <script src="input.js"></script>
@@ -19,11 +19,12 @@
 	<script src="extblurF.js"></script>
 	<script src="dispatcher_simple.js"></script>
 	<script src="image.js"></script>
-	<script src="metaspheres.js"></script>
 
-
-	 <script src="sakura_petalis.js"></script>
-	<script src="demoMSPH.js"></script>
+	<!-- engines: !-->
+	<script src="viewdebug.js"></script> <!-- !-->
+		<!-- <script src="metaspheres.js"></script> -->
+	<!-- <script src="sakura_petalis.js"></script> -->
+	<!--<script src="demoMSPH.js"></script> -->
 
 <style type="text/css">
 body { background-color: black ;}
@@ -35,10 +36,10 @@ body { background-color: black ;}
 	window.onload = function() {
 		var canvas = document.getElementById("zCanvas");
 		truss = truss_o.create(canvas);
-		truss.setViewEngine("SakuraPetalis");
+		//truss.setViewEngine("SakuraPetalis");
 		//truss.setViewEngine("DemoMetaspheres");//"SakuraPetalis");
-		// truss.AddObject('1', 100, 50, {label:'testleft', labelRight:'testright'});
-		// truss.AddObject('2', 70, 80);
+		 truss.AddObject('1', 100, 50, {label:'testleft', labelRight:'testright'});
+		 truss.AddObject('2', 70, 80);
 		// truss.AddObject('3', 120, 80);
 		// truss.AddObject('4', 180, 100);
 		// truss.AddObject('5', 180, 130);

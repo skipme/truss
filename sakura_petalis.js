@@ -10,7 +10,7 @@
 			update:update
 		};
 		trs.addViewEngine("SakuraPetalis", iface);
-		trs.setViewEngine("SakuraPetalis");
+		//trs.setViewEngine("SakuraPetalis");
 		trs.addLayer(menulayer);
 
 		var r = trs.runtime;
@@ -54,15 +54,15 @@
 		trs.canvas.oncontextmenu = function() {
      		return false;  
 		} 
-		trs.addEventListener("mousedown", function(e)
-			{
-				if(e.which != 1)
-				{
-					var mx = e.pageX-this.bounds.left;
-					var my = e.pageY-this.bounds.top;
-					this.ShowMenu("petalisMenu", mx, my);
-				}
-			});
+		// trs.addEventListener("mousedown", function(e)
+		// 	{
+		// 		if(e.which != 1)
+		// 		{
+		// 			var mx = e.pageX-this.bounds.left;
+		// 			var my = e.pageY-this.bounds.top;
+		// 			this.ShowMenu("petalisMenu", mx, my);
+		// 		}
+		// 	});
 	}
 	function prepareVectors(spetalis)
 	{

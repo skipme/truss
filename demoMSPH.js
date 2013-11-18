@@ -2,17 +2,19 @@
 	//"use strict";
 	// var menulayer ='dmeta.menu';
 	var radius = 128;
+	var metalayer = 'metalay';
 
 	function dmetaSpheres(trs)
 	{
 		var iface = {
-			Render:Render,
-			update:update
+			Render: Render,
+			update: update
 		};
 		trs.addViewEngine("DemoMetaspheres", iface);
 
 		var r = trs.runtime;
-		
+		trs.addLayer(metalayer, true);
+		trs.CreateTimer(1000/40, updateMetaLayer);
 
 		r.dmeta = { ovals: [], ovalRadius: radius, gradient: null, dragging: {index: -1, sx: 0, sy: 0, cx: 0, cy: 0} };
 		createMetas(trs, r.dmeta);
@@ -22,6 +24,22 @@
 		trs.addEventListener("mousedown", mdown);
 		trs.addEventListener("mouseup", mup);
 		trs.addEventListener("mousemove", mmove);
+	}
+	function updateMetaLayer()
+	{
+		this.setLayer(metalayer);
+		this.Clear();
+		//
+		 
+		drawMetas(this, this.runtime.dmeta);
+		this.postEffectA();
+		//this.postEffectA_();
+
+		this.MetaPostProcess();
+		//
+
+		
+
 	}
 	function mdown(e)
 	{
@@ -90,12 +108,15 @@
 	function Render()
 	{
 		// this.setLayer();
-		this.Clear();
+
 		//
-		 
-		drawMetas(this, this.runtime.dmeta);
-		this.MetaPostProcess();
-		this.postEffectA();
+		this.setLayer();
+		//this.Clear();
+		
+		//this.drawLayer(metalayer);
+		this.context.globalCompositeOperation ="copy";
+		this.drawLayer(metalayer);
+		this.context.globalCompositeOperation = "source-over";
 		//
 		this.context.fillStyle = "#ffffff";
 		this.SetShadow(0,0,6,"#000000");

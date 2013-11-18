@@ -34,125 +34,12 @@
 
 		trs.setBackground = setBackground;
 		//trs.ShowMenu("test", 112, 120);
-		trs.CreateTimer(1000/30, flexesIteration);
 	}
-	function drawFlexes(trs,flexes)
-	{
-		for (var i = 0; i < flexes.length; i++) {
-			f=flexes[i];
-			if(!f.visible)
-				continue;
-			//trs.context.fillStyle = "rgba(255, 255, 255, 0.8)";
-			// trs.context.fillStyle = "rgba(255, 255, 255, 0."+f.opacity+")";
-			// trs.context.beginPath();
-	  //   	trs.context.arc(f.x, f.y, f.szR, 0, 2 * Math.PI, false);
-	  //   	trs.context.closePath();
-	  //   	trs.context.fill();
-	  		// trs.context.globalCompositeOperation = "lighter";
-	  		trs.context.globalAlpha = f.opacity/20;
-	  		trs.DrawAtlas(f.atlas, f.x, f.y, f.szR, f.szR);
-		};
-		trs.context.globalAlpha = 1;
-	}
-	function drawFlexesOvals(trs,flexes)
-	{
-		//trs.SetShadow(0,0,6,"rgb(255, 255, 255)");
-		for (var i = 0; i < flexes.length; i++) {
-			f=flexes[i];
-			if(!f.visible)
-				continue;
-			//trs.context.fillStyle = "rgba(255, 255, 255, 0.8)";
-			trs.context.fillStyle = "rgba(255, 255, 255, 0."+f.opacity+")";
-			trs.context.beginPath();
-	    	trs.context.arc(f.x, f.y, f.szR, 0, 2 * Math.PI, false);
-	    	trs.context.closePath();
-	    	trs.context.fill();
-		};
-	}
-	function flexesIteration()
-	{
-		var trs = this;
-		if(typeof trs.flexes === 'undefined')
-		{
-			// var imgId = trs.LoadImage('img/snow_flx.pnga_t.png');
-			// atlasIds.push(trs.AddAtlas(imgId, 0,0, 22,29));
-			// atlasIds.push(trs.AddAtlas(imgId, 23,0, 22,29));
-			// atlasIds.push(trs.AddAtlas(imgId, 44,0, 22,29));
-			var imgId = trs.LoadImage('img/petalis.png');
-			atlasIds.push(trs.AddAtlas(imgId, 11,13, 89,82));
-			atlasIds.push(trs.AddAtlas(imgId, 126,13, 79,82));
-			atlasIds.push(trs.AddAtlas(imgId, 243,13, 91,104));
-
-			trs.flexes = {layblink:[],lay1:[],lay2:[],lay3:[],lastIteration:new Date(),lastIterationVis:new Date()};
-			flexCnt = 190;
-			trs.updateBounds();
-			
-			popFlexes(trs.flexes.lay1, flexCnt, trs.bounds);
-			popFlexes(trs.flexes.lay2, flexCnt, trs.bounds);
-			popFlexes(trs.flexes.layblink, flexCnt, trs.bounds);
-			popFlexes(trs.flexes.lay3, flexCnt, trs.bounds);
-
-			
-		}else{
-			iterateFlexes(trs.flexes.lay1, trs.bounds);
-			iterateFlexes(trs.flexes.lay2, trs.bounds);
-			iterateFlexes(trs.flexes.layblink, trs.bounds);
-			iterateFlexes(trs.flexes.lay3, trs.bounds);
-			if((new Date()) - trs.flexes.lastIterationVis > 1000)
-			{
-				iterateFlexesVis(trs.flexes.layblink);
-				trs.flexes.lastIterationVis=new Date();
-			}
-			trs.flexes.lastIteration=Date();
-			trs.update();
-		}
-	}
-	function iterateFlexes(flexes, bounds)
-	{
-		for (var i = 0; i < flexes.length; i++) {
-			var f=flexes[i];
-			f.x+=f.stepx;
-			f.y+=f.stepy;
-			if(f.x > bounds.width)
-				f.x = 0;
-			if(f.y > bounds.height)
-				f.y = 0;
-			if(f.x<0)
-				f.x = bounds.width;
-			
-		};
-	}
-	function iterateFlexesVis(flexes)
-	{
-		for (var i = 0; i < flexes.length; i++) {
-			f=flexes[i];
-			f.visible=rnd(1,20)!=10;
-		};
-	}
-	function popFlexes(flexes, max, bounds)
-	{
-		for (var i = 0; i < max; i++) {
-			var f = {visible:true, szR:rnd(3,12), x:rnd(0,bounds.width),y:rnd(0,bounds.height), 
-				stepx:rnd(-1,3), stepy:rnd(1,3), opacity:rnd(1,20),
-				atlas: (rnd(0, atlasIds.length) -1)};
-			if(f.stepx==0)
-				f.stepx=1;
-			flexes.push(f);
-		};
-	}
+	
 	function rnd(min,max){
 		return min + Math.floor((Math.random()*(max-min)+1));
 	}
-	function drawAllFlexes(trs){
-		if(typeof trs.flexes != 'undefined')
-		{
-			drawFlexes(trs ,trs.flexes.lay1);
-			drawFlexes(trs, trs.flexes.layblink)
-			drawFlexes(trs, trs.flexes.lay2);
-			drawFlexes(trs, trs.flexes.lay3);
-			//trs.blurCanvas();
-		}
-	}
+
 	function update()
 	{
 		this.invalidateLayer(textlayer);
@@ -173,8 +60,8 @@
 	{
 		trs.SetShadow();
 		trs.context.lineWidth = 1;
-		trs.context.strokeStyle = "#FaFaFa";
-		trs.context.strokeRect(trs.aabb.x,trs.aabb.y,trs.aabb.max_x-trs.aabb.x,trs.aabb.max_y-trs.aabb.y);
+		trs.context.strokeStyle = "#aaFaFa";
+		trs.context.strokeRect(trs.aabb.x+.5,trs.aabb.y+.5,trs.aabb.max_x-trs.aabb.x,trs.aabb.max_y-trs.aabb.y);
 	}
 	function updateLayers()
 	{
@@ -189,7 +76,7 @@
 			this.setLayer();
 			this.Clear();
 			this.SetShadow();
-			this.drawLayer(backgroundlayer);
+			//this.drawLayer(backgroundlayer);
 		}else{
 			//this.log(backgroundlayer);
 			this.setLayer(backgroundlayer);
@@ -210,7 +97,7 @@
 		
 		this.setLayer();
 
-		drawAllFlexes(this);
+		// drawAllFlexes(this);
 		
 		this.SetShadow();
 		this.context.fillStyle = "rgb(255, 255, 255)";
@@ -259,21 +146,25 @@
                 	}else{
                 		this.context.fillStyle = this.context.strokeStyle = "#aaaaaa";
                 	}
+                }else {
+                	this.context.strokeStyle = "#FFFFFF";
                 }
                 
 				this.drawArrow(cx1,cy1,x,y,3,1,Math.PI/4,radius);
 			};
   			//this.SetShadow(2,2,6,"rgba(0, 0, 0, 0.8)");
+
+  			this.context.lineWidth = 1;
+  			this.context.strokeStyle = "#FFFFFF";
 			for (var i = 0; i < this.objects.length; i++) {
 				
-	    		this.context.lineWidth = .5;
 	    		if(this.selectedNode == i)
 	    		{
 	    			this.context.fillStyle = "rgba(68, 110, 150, 0.6)";
 	    		}else{
 	    			this.context.fillStyle = "rgba(0, 0, 0, 0.2)";
 	    		}
-	    		this.context.strokeStyle = "#FFFFFF";
+	    		
 				this.context.beginPath();
 		    	this.context.arc(this.objects[i].x, this.objects[i].y, this.options.view.node.radius, 0, 2 * Math.PI, false);
 		    	this.context.closePath();
@@ -306,22 +197,28 @@
 				this.context.font = "9pt Verdana";
 				this.SetShadow();
 				this.context.translate(this.objs_translate.xoffset,this.objs_translate.yoffset);
-				//this.SetShadow(5,5,4,"rgba(0, 0, 0, 0.3)");
+
 				this.context.fillStyle = "rgb(255, 255, 255)";
 				for (var i = 0; i < this.objects.length; i++) {
-					if(this.objects[i].label != undefined){
+					if(this.objects[i].label !== undefined){
 						
 		  				var dim = this.context.measureText(this.objects[i].label);
 		  				var tx = this.objects[i].x-this.options.view.node.radius - dim.width - 4;
 		  				var ty = this.objects[i].y+this.options.view.node.radius*.5;
 
-		  				this.context.fillStyle = "rgba(100, 100, 100, 0.5)";
+		  				this.context.fillStyle = "rgba(255, 255, 255, 0.1)";
 		  				this.context.fillRect(tx,ty-10,dim.width, 12)
 
 		  				this.context.fillStyle = "rgb(255, 255, 255)";
 		  				this.context.fillText(this.objects[i].label, tx, ty);
 		  			}
-		  			if(this.objects[i].labelRight != undefined){
+		  			if(this.objects[i].labelRight !== undefined){
+		  				var dim = this.context.measureText(this.objects[i].labelRight);
+		  				var tx = this.objects[i].x+this.options.view.node.radius+ 4;
+		  				var ty = this.objects[i].y+this.options.view.node.radius*.5;
+
+		  				this.context.fillStyle = "rgba(255, 255, 255, 0.1)";
+		  				this.context.fillRect(tx,ty-10,dim.width, 12)
 
 						this.context.fillStyle = "rgb(255, 255, 255)";
 		  				this.context.fillText(this.objects[i].labelRight, this.objects[i].x+this.options.view.node.radius + 4,

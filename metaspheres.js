@@ -10,6 +10,7 @@
 		trs.MetaDrawGradient = drawOval;
 		trs.MetaPostProcess = postProcess;
 		trs.postEffectA = postEffectA;
+		trs.postEffectA_ = postEffectA_;
 		r.metaSpheres.patIMG = trs.LoadImage('img/pattern.png', function(image){
 			r.metaSpheres.patFS = trs.context.createPattern(image, "repeat")
 		});
@@ -64,7 +65,7 @@
     {
     	if(typeof this.runtime.metaSpheres.patFS === 'undefined')
     		return;
-		 this.context.globalCompositeOperation = "darken";
+		 this.context.globalCompositeOperation = "xor";
 		 this.context.fillStyle = this.runtime.metaSpheres.patFS;
 		 this.context.fillRect(0, 0, this.bounds.width, this.bounds.height);
 		 this.context.globalCompositeOperation = "source-over";
@@ -90,14 +91,13 @@
 		
 		// };
 
-		var o = conv(imageData, [ 1/9, 1/9, 1/9,
-    1/9, 1/9, 1/9,
-    1/9, 1/9, 1/9 ], 0, this.runtime.metaSpheres.tex);
-		(this.runtime.metaSpheres.tex.getContext('2d')).putImageData(o, 0, 0);
-		this.context.globalCompositeOperation = "lighter";
-		this.Clear();
-		 this.context.drawImage(this.runtime.metaSpheres.tex,0,0);
-        // this.context.putImageData(o, 0, 0);
+		var o = conv(imageData, [ 1/2, 1/3, 1/4,
+    1/5, 1/6, 1/6 ], 0, this.runtime.metaSpheres.tex);
+		//(this.runtime.metaSpheres.tex.getContext('2d')).putImageData(o, 0, 0);
+		//this.context.globalCompositeOperation = "lighter";
+		//this.Clear();
+		 //this.context.drawImage(this.runtime.metaSpheres.tex,0,0);
+         this.context.putImageData(o, 0, 0);
     }
     function conv(pixels, weights, opaque,tex) {
 	  var side = Math.round(Math.sqrt(weights.length));
@@ -143,5 +143,5 @@
 	  }
 	  return output;
 	};
-	truss_o.extendModule(metaSpheres, "view.Metaspheres", ["view.Interface", "view.Layers", "core.Events", "core.runtime"]);
+	truss_o.extendModule(metaSpheres, "view.Metaspheres", ["view.Images", "view.Interface", "view.Layers", "core.Events", "core.runtime"]);
 }());

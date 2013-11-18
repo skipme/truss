@@ -56,6 +56,8 @@
 				// selected node
 				if(typeof data !== 'undefined' && data>=0)
 				{
+					if(data == this.selectedNode)
+						this.selectedNode = -1;
 					this.RemoveObject(data);
 				}
 			break;
