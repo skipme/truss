@@ -17,7 +17,13 @@
 			{text:'Connect with...', callback:MTN_connode},
 			{text:'Remove', callback:MTN_removenode},
 			]});
-
+		trs.AddDisplayMenu("field", {items:[
+			{text:'Find node', callback:undefined}, 
+			{text:'---------------'},
+			{text:'Locate to map center', callback:undefined},
+			{text:'play intro video', callback:undefined},
+			{text:'play all history', callback:undefined},
+			]});
 		//
 		trs.DeltasMeasuring = [];
 
@@ -133,8 +139,10 @@
 					//console.log("dragging on");
 					this.DragList = this.GetRelatedObjectsDeep(this.selectedNode);
 					for (var i = 0; i < this.DragList.length; i++) {
-						o = this.objects[this.DragList[i]];
-						o.targetX = 0;o.targetY = 0; o.dragOn = false;
+						var o = this.objects[this.DragList[i]];
+						o.targetX = 0;
+						o.targetY = 0; 
+						o.dragOn = false;
 					};
 					this.mouseDragContext.startX = mx - this.objects[this.selectedNode].x - this.objs_translate.xoffset;
 					this.mouseDragContext.startY = my - this.objects[this.selectedNode].y - this.objs_translate.yoffset;
@@ -159,8 +167,11 @@
 				{
 					this.ShowMenu("node", mx, my);
 				}else{
-					this.HideMenu();
+					if(this.getActiveMenuName() !== undefined)
+						this.HideMenu();
+					else this.ShowMenu("field", mx, my);
 				}
+				this.update();
 			}
 		}
 		this.canvas.focus();

@@ -8,6 +8,7 @@
 		trs.AddDisplayMenu = AddMenu;
 		trs.ShowMenu = function(name,x,y,monly){ShowMenu(this, name, x, y);};
 		trs.HideMenu = HideMenu;
+		trs.getActiveMenuName = function(){return this.menu.displayMenu;};
 		trs.processInteractionMMove = processInteractionMMove;
 		trs.processInteractionMMdown = processInteractionMMdown;
 	}
