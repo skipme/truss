@@ -32,7 +32,7 @@
 		trs.addEventListener("mousemove", mmove);
 		trs.addEventListener("dblclick", dblclick);
 		trs.addEventListener("click", click);
-		trs.addEventListener("keydown", keydown);
+		trs.addEventListener("keypress", dkeypress);
 
 		trs.addEvent('MouseDragDelta');
 		trs.addEvent('nodeSelected');
@@ -90,10 +90,10 @@
 	{
 
 	}
-	function keydown(e)
+	function dkeypress(e)
 	{
-		this.TextBoxInteractionInput(e,null,
-			null,null,null);
+		this.TextBoxInteractionInput(e,null,null,null,null);
+		e.preventDefault();
 	}
 	function dblclick(e)
 	{

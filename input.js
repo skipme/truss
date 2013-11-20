@@ -13,7 +13,8 @@
 		trs.PushEvent = PushEvent;
 		trs.DispatchEvents = DispatchEvents;
 
-		trs.addEventListener("keydown", onKeyDown);
+		//trs.addEventListener("keydown", onKeyDown);
+		//trs.addEventListener("keypress", onKeyDown);
 		trs.canvas.focus();
 		trs.canvas.setAttribute('tabindex','0');
 		//trs.canvas.setAttribute('contentEditable','true');

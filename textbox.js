@@ -48,10 +48,7 @@
 			// set caret position
 			// assume drag over point
 
-			this.context.font = "10pt Verdana";
-			this.context.textBaseline ="top";
-			this.context.textAlign = 'start';
-
+			setTextParams(this)
 			for (var i = 0; i < acb.lines.length; i++) {
 				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
 				{ 
@@ -70,15 +67,38 @@
 					acb.caretPositionX = dim.width + this.TextBox.x;
 					acb.caretPositionY = acb.lines[i].y;
 					acb.caretLine = i;
-					acb.caretIndex = avgindex;
+					acb.caretIndex = avgindex>=tl?avgindex=tl-1:avgindex ;
 				}
 			};
 
 		}else if(keyboardDownEvent !== null){
 			var e = keyboardDownEvent;
-			      var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
-      var keychar = String.fromCharCode(key);
-			console.log(keychar)
+			if(e.keyCode === 8)
+			{
+				var str = acb.lines[acb.caretLine].t;
+				var newleft = str.substr(0, acb.caretIndex);
+				setTextParams(this)
+				var dim = this.context.measureText(newleft);
+				acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+1, str.length - acb.caretIndex-1);
+				acb.caretIndex--;
+				acb.caretPositionX = dim.width + this.TextBox.x;
+				this.TextBox.activeBox.measured = false;
+			}else{
+		        var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
+	      		var keychar = String.fromCharCode(key);
+
+	      		var str = acb.lines[acb.caretLine].t;
+	      		var left = str.substr(0, acb.caretIndex+1);
+
+				acb.lines[acb.caretLine].t = left+keychar+str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
+				
+				setTextParams(this)
+				var dim = this.context.measureText(left+keychar);
+				acb.caretPositionX = dim.width + this.TextBox.x;
+				this.TextBox.activeBox.measured = false;
+				acb.caretIndex++;
+				console.log(keychar)
+			}
 		}
 	}
 	function drawTextBox()
@@ -97,12 +117,16 @@
 		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-4, trs.TextBox.width+4, trs.TextBox.height+4);
 		trs.SetShadow();
 	}
-	function drawTextBoxText(trs, measureOnly)
+	function setTextParams(trs)
 	{
 		trs.context.font = "10pt Verdana";
 		trs.context.textBaseline ="top";
 		trs.context.textAlign = 'start';
 		trs.context.fillStyle = "rgb(0, 0, 0)";
+	}
+	function drawTextBoxText(trs, measureOnly)
+	{
+		setTextParams(trs)
 		// ---
 
 		var acb = trs.TextBox.activeBox;
