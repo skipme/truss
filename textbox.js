@@ -65,13 +65,16 @@
 			if(e.keyCode === 8)// backspace
 			{ 
 				var str = acb.lines[acb.caretLine].t;
-				var newleft = str.substr(0, acb.caretIndex);
-				setTextParams(this)
-				var dim = this.context.measureText(newleft);
-				acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+1, str.length - acb.caretIndex-1);
-				acb.caretIndex--;
-				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-				this.TextBox.activeBox.measured = false;
+				if(acb.caretIndex >= 0)
+				{
+					var newleft = str.substr(0, acb.caretIndex);
+					setTextParams(this)
+					var dim = this.context.measureText(newleft);
+					acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+1, str.length - acb.caretIndex-1);
+					acb.caretIndex--;
+					acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
+					this.TextBox.activeBox.measured = false;
+				}
 			}else if(e.keyCode === 37)// left arrow
 			{
 				if(e.ctrlKey)
@@ -173,12 +176,18 @@
 	      		var keychar = String.fromCharCode(key);
 
 	      		var str = acb.lines[acb.caretLine].t;
-	      		var left = str.substr(0, acb.caretIndex+1);
+	      		setTextParams(this)
+	      		var dim = null;
+	      		if(acb.caretIndex>=0)
+	      		{
+		      		var left = str.substr(0, acb.caretIndex+1);
+					acb.lines[acb.caretLine].t = left+keychar+str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
+					dim = this.context.measureText(left+keychar);
+				}else{
+					acb.lines[acb.caretLine].t = keychar+str;
+					dim = this.context.measureText(keychar);
+				}
 
-				acb.lines[acb.caretLine].t = left+keychar+str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
-				
-				setTextParams(this)
-				var dim = this.context.measureText(left+keychar);
 				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
 				this.TextBox.activeBox.measured = false;
 				acb.caretIndex++;
@@ -190,35 +199,44 @@
 	{
 		var acb = trs.TextBox.activeBox;
 
-		var avgindex = Math.floor((x-trs.TextBox.x) / acb.lines[lineIndex].davw)-1;
-		if(avgindex < -1)
-			avgindex = -1;
-		
-		setTextParams(trs);
-		
-		var tl = acb.lines[lineIndex].t.length;
-		var dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
-		if(avgindex >= tl)
-		{	
-			avgindex = tl-1;
+		var avgindex = -1;
+		if(acb.lines[lineIndex].t.length > 0)
+		{
+			avgindex = Math.floor((x-trs.TextBox.x) / acb.lines[lineIndex].davw)-1;
+			if(avgindex < -1)
+				avgindex = -1;
+			
+			setTextParams(trs);
+			
+			var tl = acb.lines[lineIndex].t.length;
+			var dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
 
-		}else{
-
-			while((dim.width + trs.TextBox.x < x) && avgindex >= 0 && avgindex < tl)
-			{
-				avgindex ++;
-				dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
-			}
-			var delta1 = dim.width + trs.TextBox.x - x;
-			var dim2 = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex));
-			//var delta2 = Math.abs(dim.width + trs.TextBox.x - x);
-			if(delta1 > 3)
+			if(avgindex >= tl)
 			{	
-				avgindex--;
-				dim = dim2;
+				avgindex = tl-1;
+
+			}else{
+
+				while((dim.width + trs.TextBox.x < x) && avgindex >= 0 && avgindex < tl)
+				{
+					avgindex ++;
+					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+				}
+				var delta1 = dim.width + trs.TextBox.x - x;
+				var dim2 = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex));
+				//var delta2 = Math.abs(dim.width + trs.TextBox.x - x);
+				if(delta1 > 3)
+				{	
+					avgindex--;
+					dim = dim2;
+				}
 			}
+
+			acb.caretPositionX = dim.width + trs.TextBox.x;
+		}else
+		{
+			acb.caretPositionX = trs.TextBox.x;
 		}
-		acb.caretPositionX = dim.width + trs.TextBox.x;
 		acb.caretPositionY = acb.lines[lineIndex].y;
 		acb.caretIndex = avgindex;
 		acb.caretLine = lineIndex;
