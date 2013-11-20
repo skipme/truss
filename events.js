@@ -46,7 +46,7 @@
 		var target = this.canvas;
 		//if(etype=="mousemove")
 		//	target = window;
-		if(etype=="mouseup" /*|| etype=="keydown"*/)
+		if(etype=="mouseup" /*|| etype=="keydown"|| etype=="keypress"*/)
 			target = document;
 		target.addEventListener(etype, function(a,b,c){foocallback.apply(self, [a,b,c]);}, false);
 		this.log('registerd evt listener '+etype);

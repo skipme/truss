@@ -27,10 +27,12 @@
 		//
 		trs.DeltasMeasuring = [];
 
-		//trs.addEventListener("click", clicked);
 		trs.addEventListener("mousedown", mdown);
 		trs.addEventListener("mouseup", mup);
 		trs.addEventListener("mousemove", mmove);
+		trs.addEventListener("dblclick", dblclick);
+		trs.addEventListener("click", click);
+		trs.addEventListener("keydown", keydown);
 
 		trs.addEvent('MouseDragDelta');
 		trs.addEvent('nodeSelected');
@@ -41,9 +43,11 @@
 
 		trs.CreateTimer(30, checkDeltas);
 		trs.canvas.oncontextmenu = function() {
-			if(typeof trs.menu.displayMenu === 'undefined' && trs.selectedNode>=0)
+			if(typeof trs.getActiveMenuName() === 'undefined')
 			{
-				trs.ShowMenu("test", trs.objects[trs.selectedNode].x, trs.objects[trs.selectedNode].y);
+				if(trs.selectedNode>=0)
+					trs.ShowMenu("node", trs.objects[trs.selectedNode].x, trs.objects[trs.selectedNode].y);
+				else trs.ShowMenu("field", 0, 0);
      		}
      		return false;  
 		} 
@@ -82,8 +86,18 @@
 
 	}
 
-	function clicked(e)
+	function click(e)
 	{
+
+	}
+	function keydown(e)
+	{
+		this.TextBoxInteractionInput(e,null,
+			null,null,null);
+	}
+	function dblclick(e)
+	{
+		this.TextBoxShow(250, 250);
 	}
 	function mdown(e)
 	{
@@ -161,7 +175,7 @@
 					this.FieldDraggingPos.prevX = this.objs_translate.xoffset;
 					this.FieldDraggingPos.prevY = this.objs_translate.yoffset;
 				}
-				this.update();
+
 			} else {
 				if(this.selectedNode >= 0)
 				{
@@ -171,7 +185,7 @@
 						this.HideMenu();
 					else this.ShowMenu("field", mx, my);
 				}
-				this.update();
+
 			}
 		}
 		this.canvas.focus();
@@ -179,7 +193,8 @@
 	}
 	function mup(e)
 	{
-		//console.log("mup");
+		this.TextBoxInteractionInput(null,null,
+			null,e,null);
 		if(e.which == 1)
 		{
 			if(this.FieldDragging)

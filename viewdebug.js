@@ -263,9 +263,11 @@
 		{
 			this.setLayer(menulayer);
 			this.Clear();
-			this.RenderDisplayMenuText(menulayer, true);
-			this.RenderDisplayMenuBackground(menulayer);
-			this.RenderDisplayMenuText(menulayer);
+			this.RenderMenu(menulayer, menulayer);
+			if(this.TextBox.isOnDisplay)
+			{
+				this.TextBoxRender();
+			}
 			this.saveLayer();
 		}
 

@@ -2,9 +2,8 @@
 	function cMenu(trs){
 		trs.menu = { menuList:[], displayMenuName:'', displayMenu:undefined, displayMenuOrigin:{x:0, y:0}, displayMenuBounds:{mwidth:0, h:0}};
 		
-		trs.RenderDisplayMenuText = function(l,monly){RenderMenuText(this, l, monly);};
-		trs.RenderDisplayMenuBackground = function(l){RenderMenuBackground(this, l);};
 
+		trs.RenderMenu = RenderMenu;
 		trs.AddDisplayMenu = AddMenu;
 		trs.ShowMenu = function(name,x,y,monly){ShowMenu(this, name, x, y);};
 		trs.HideMenu = HideMenu;
@@ -51,8 +50,9 @@
 	}
 	function RenderMenu(layerText, layerFront)
 	{
-		RenderMenuText(this, layerText);
+		RenderMenuText(this, layerText, true);
 		RenderMenuBackground(this, layerFront);
+		RenderMenuText(this, layerText, false);
 	}
 	function RenderMenuText(trs, layer, measureOnly)
 	{
