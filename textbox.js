@@ -65,8 +65,21 @@
 			if(e.keyCode === 8)// backspace
 			{ 
 				var str = acb.lines[acb.caretLine].t;
-				if(acb.caretIndex >= 0)
+
+				if(acb.caretIndex == -1)
 				{
+					if(acb.caretLine > 0)
+					{
+						var cp  = acb.lines[acb.caretLine - 1].t.length-1;
+						acb.lines[acb.caretLine - 1].t = acb.lines[acb.caretLine - 1].t + str;
+						acb.caretLine--; 
+						acb.caretPositionY = acb.lines[acb.caretLine].y;
+						acb.caretSETupDownX = acb.caretPositionX = acb.lines[acb.caretLine].w + this.TextBox.x;	
+						acb.caretIndex=cp;
+						this.TextBox.activeBox.measured = false;
+						acb.lines.splice(acb.caretLine+1, 1);
+					}
+				}else{
 					var newleft = str.substr(0, acb.caretIndex);
 					setTextParams(this)
 					var dim = this.context.measureText(newleft);
@@ -75,6 +88,7 @@
 					acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
 					this.TextBox.activeBox.measured = false;
 				}
+				
 			}else if(e.keyCode === 37)// left arrow
 			{
 				if(e.ctrlKey)
