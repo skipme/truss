@@ -170,6 +170,23 @@
 					this.TextBox.activeBox.measured = false;
 				}
 
+			}else if(e.keyCode === 13)// enter
+			{
+				var str = acb.lines[acb.caretLine].t;
+				acb.caretLine++;
+				if(acb.caretLine > acb.lines.length)
+					throw '';
+				if(acb.caretLine === acb.lines.length)
+					acb.lines.push({t: "xu", w: 0, davw: 0, y: 0});
+				else acb.lines.splice(acb.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
+
+				acb.lines[acb.caretLine-1].t = str.substr(0, acb.caretIndex+1);
+				acb.lines[acb.caretLine].t = str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
+				acb.caretIndex = -1;
+				acb.caretPositionY = acb.lines[acb.caretLine-1].y+12;
+				acb.caretSETupDownX = acb.caretPositionX = this.TextBox.x;
+				this.TextBox.activeBox.measured = false;
+
 			}else{
 				// input
 		        var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
