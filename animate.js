@@ -3,7 +3,7 @@
 	var fpsFilter = 10;
 	function cAnimate(trs){
 		trs.fps = {};
-		trs.fps.rate = 0; trs.fps.now = 0; trs.fps.lastUpdate = (new Date)*1 - 1;
+		trs.fps.rate = 0; trs.fps.now = 0; trs.fps.lastUpdate = (new Date())*1 - 1;
 		trs.addEvent('Render');
 		trs.addEvent('update');
 
@@ -28,9 +28,15 @@
 	}
 	function Frame(trs)
 	{
-		var thisFrameFPS = 1000 / ((trs.fps.now=new Date) - trs.fps.lastUpdate);
-  			trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
-  			trs.fps.lastUpdate = trs.fps.now;
+		trs.fps.now=new Date();
+		var thisFrameFPS = 1000.0 / (trs.fps.now - trs.fps.lastUpdate);
+		if(isNaN(thisFrameFPS))
+			thisFrameFPS = 0.1;
+		if(isNaN(trs.fps.rate))
+			trs.fps.rate = 0.1;
+  		trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
+  		//if(trs.fps.rate)
+  		trs.fps.lastUpdate = trs.fps.now;
   			
 		if(!trs.StopAnim)
 		{

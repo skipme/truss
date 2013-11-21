@@ -34,6 +34,7 @@
 		trs.addEventListener("dblclick", dblclick);
 		trs.addEventListener("click", click);
 		trs.addEventListener("keypress", dkeypress);
+		trs.addEventListener("keydown", onKeyDown);
 
 		trs.addEvent('MouseDragDelta');
 		trs.addEvent('nodeSelected');
@@ -111,6 +112,23 @@
 			this.TextBoxInteractionInput(e,null,null,null,null);
 		}
 		e.preventDefault();
+	}
+	function onKeyDown(e){
+		//console.log('pressed '+e.keyCode+', ['+String.fromCharCode(e.keyCode) +']');
+		if(this.editTextNode === -1
+			&& e.keyCode === 13 && this.selectedNode >= 0)// enter pressed on selected node
+		{
+			showTextBoxForSelectedNode(this);
+			e.preventDefault();
+		}else
+		if(e.keyCode === 13 || e.keyCode === 8
+			|| e.keyCode === 37|| e.keyCode === 39
+			|| e.keyCode === 40|| e.keyCode === 38
+			|| e.keyCode === 46|| e.keyCode === 27)
+		{
+			this.TextBoxInteractionInput(e,null,null,null,null);
+			e.preventDefault();
+		}
 	}
 	function dblclick(e)
 	{

@@ -199,7 +199,7 @@ var truss_o;
 	var fpsFilter = 10;
 	function cAnimate(trs){
 		trs.fps = {};
-		trs.fps.rate = 0; trs.fps.now = 0; trs.fps.lastUpdate = (new Date)*1 - 1;
+		trs.fps.rate = 0; trs.fps.now = 0; trs.fps.lastUpdate = (new Date())*1 - 1;
 		trs.addEvent('Render');
 		trs.addEvent('update');
 
@@ -224,9 +224,15 @@ var truss_o;
 	}
 	function Frame(trs)
 	{
-		var thisFrameFPS = 1000 / ((trs.fps.now=new Date) - trs.fps.lastUpdate);
-  			trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
-  			trs.fps.lastUpdate = trs.fps.now;
+		trs.fps.now=new Date();
+		var thisFrameFPS = 1000.0 / (trs.fps.now - trs.fps.lastUpdate);
+		if(isNaN(thisFrameFPS))
+			thisFrameFPS = 0.1;
+		if(isNaN(trs.fps.rate))
+			trs.fps.rate = 0.1;
+  		trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
+  		//if(trs.fps.rate)
+  		trs.fps.lastUpdate = trs.fps.now;
   			
 		if(!trs.StopAnim)
 		{
@@ -276,14 +282,14 @@ var truss_o;
 }());// "cmenu.js"
 (function(){
 	function cMenu(trs){
-		trs.menu = { menuList:[], displayMenuName:'', displayMenu:undefined, displayMenuOrigin:{x:0, y:0}, displayMenuBounds:{mwidth:0, h:0}};
+		trs.menu = { menuList:[], displayMenuName:undefined, displayMenu:undefined, displayMenuOrigin:{x:0, y:0}, displayMenuBounds:{mwidth:0, h:0}};
 		
-		trs.RenderDisplayMenuText = function(l,monly){RenderMenuText(this, l, monly);};
-		trs.RenderDisplayMenuBackground = function(l){RenderMenuBackground(this, l);};
 
+		trs.RenderMenu = RenderMenu;
 		trs.AddDisplayMenu = AddMenu;
 		trs.ShowMenu = function(name,x,y,monly){ShowMenu(this, name, x, y);};
 		trs.HideMenu = HideMenu;
+		trs.getActiveMenuName = function(){return this.menu.displayMenuName;};
 		trs.processInteractionMMove = processInteractionMMove;
 		trs.processInteractionMMdown = processInteractionMMdown;
 	}
@@ -296,7 +302,7 @@ var truss_o;
 		for (var i = 0; i < menuO.items.length; i++) {
 			 menuO.items[i].selected = false;
 		};
-
+		this.menu.displayMenuName = undefined;
 		this.menu.displayMenu = undefined;
 		this.update();
 	}
@@ -326,8 +332,9 @@ var truss_o;
 	}
 	function RenderMenu(layerText, layerFront)
 	{
-		RenderMenuText(this, layerText);
+		RenderMenuText(this, layerText, true);
 		RenderMenuBackground(this, layerFront);
+		RenderMenuText(this, layerText, false);
 	}
 	function RenderMenuText(trs, layer, measureOnly)
 	{
@@ -447,132 +454,6 @@ var truss_o;
 		return(x<hitX&&x+w>=hitX&&y<hitY&&y+h>=hitY);
 	}
 	truss_o.extendModule(cMenu, "view.Menu", ["view.Input", "view.Interface", "core.Events", "core.runtime"]);
-}());// "demoMSPH.js"
-(function(){
-	//"use strict";
-	// var menulayer ='dmeta.menu';
-	var radius = 128;
-
-	function dmetaSpheres(trs)
-	{
-		var iface = {
-			Render:Render,
-			update:update
-		};
-		trs.addViewEngine("DemoMetaspheres", iface);
-
-		var r = trs.runtime;
-		
-
-		r.dmeta = { ovals: [], ovalRadius: radius, gradient: null, dragging: {index: -1, sx: 0, sy: 0, cx: 0, cy: 0} };
-		createMetas(trs, r.dmeta);
-
-		r.dmeta.gradient = trs.MetaPrepareGradient(radius);
-
-		trs.addEventListener("mousedown", mdown);
-		trs.addEventListener("mouseup", mup);
-		trs.addEventListener("mousemove", mmove);
-	}
-	function mdown(e)
-	{
-		var mx = e.pageX-this.bounds.left;
-		var my = e.pageY-this.bounds.top;
-		var dmeta = this.runtime.dmeta;
-
-		dmeta.dragging.index = -1;
-
-		for (var i = 0; i < dmeta.ovals.length; i++) {
-			var centerx = dmeta.ovals[i].x;//+radius;
-			var centery = dmeta.ovals[i].y;//+radius;
-			if(hittest(centerx, centery, 32, mx, my))
-			{
-				dmeta.dragging.index = i;
-				dmeta.dragging.sx = mx;
-				dmeta.dragging.sy = my;
-				dmeta.dragging.cx = mx - dmeta.ovals[i].x;
-				dmeta.dragging.cy = my - dmeta.ovals[i].y;
-
-				this.update();
-				break;
-			}
-		}
-	}
-	function mup(e)
-	{
-		var dmeta = this.runtime.dmeta;
-		dmeta.dragging.index = -1;
-	}
-	function mmove(e)
-	{
-		var mx = e.pageX-this.bounds.left;
-		var my = e.pageY-this.bounds.top;
-		var dmeta = this.runtime.dmeta;
-		if(dmeta.dragging.index >= 0)
-		{
-			var dov = dmeta.ovals[dmeta.dragging.index];
-			dov.x = mx -  dmeta.dragging.cx;
-			dov.y = my -  dmeta.dragging.cy;
-		}
-	}
-	function createMetas(trs, dmeta)
-	{
-		for (var i = 0; i < 10; i++) {
-			dmeta.ovals.push(createMSphere(trs, dmeta));
-		};
-	}
-	function createMSphere(trs, dmeta)
-	{
-		var ms = { x: trs.rndm(12, trs.bounds.width), y: trs.rndm(12, trs.bounds.height)};
-		return ms;
-	}
-	function drawMetas(trs, dmeta)
-	{
-		var d = dmeta.ovalRadius * 2;
-		for (var i = 0; i < dmeta.ovals.length; i++) {
-			trs.MetaDrawGradient(dmeta.gradient, dmeta.ovals[i].x, dmeta.ovals[i].y, d, d);
-		};
-	}
-	function update()
-	{
-		// this.invalidateLayer(textlayer);
-		// this.invalidateLayer(menulayer);
-	}
-	function Render()
-	{
-		// this.setLayer();
-		this.Clear();
-		//
-		 
-		drawMetas(this, this.runtime.dmeta);
-		this.MetaPostProcess();
-		this.postEffectA();
-		//
-		this.context.fillStyle = "#ffffff";
-		this.SetShadow(0,0,6,"#000000");
-		this.context.fillText(' |||  ' +this.fps.rate.toFixed(2)+' fps', 14,14);
-		//this.context.fillText('', 14, this.bounds.height - 96);
-		this.SetShadow();
-
-		// if(!this.hasLayerData(menulayer))
-		// {
-		// 	this.setLayer(menulayer);
-		// 	this.Clear();
-		// 	this.RenderDisplayMenuText(menulayer, true);
-		// 	this.RenderDisplayMenuBackground(menulayer);
-		// 	this.RenderDisplayMenuText(menulayer);
-		// 	this.saveLayer();
-		// }
-
-		// this.setLayer();
-		// this.drawLayer(menulayer);
-	}
-	function hittest(x,y,radius,hitX,hitY) {
-		var dx = x - hitX;
-		var dy = y - hitY;
-		
-		return(dx*dx + dy*dy < radius*radius*4);
-	}
-	truss_o.extendModule(dmetaSpheres, "view.DMetaspheres", ["view.Interface", "view.Layers", "objects.Tree", "view.Structure", "core.runtime", "view.Menu", "extBlur", "view.Metaspheres"]);
 }());// "dispatcher_simple.js"
 (function(){
 	function simpleDispatcher(trs){
@@ -742,7 +623,7 @@ var truss_o;
 		var target = this.canvas;
 		//if(etype=="mousemove")
 		//	target = window;
-		if(etype=="mouseup" /*|| etype=="keydown"*/)
+		if(etype=="mouseup" /*|| etype=="keydown"|| etype=="keypress"*/)
 			target = document;
 		target.addEventListener(etype, function(a,b,c){foocallback.apply(self, [a,b,c]);}, false);
 		this.log('registerd evt listener '+etype);
@@ -1174,7 +1055,8 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 		trs.PushEvent = PushEvent;
 		trs.DispatchEvents = DispatchEvents;
 
-		trs.addEventListener("keydown", onKeyDown);
+		// trs.addEventListener("keydown", onKeyDown);
+		//trs.addEventListener("keypress", onKeyDown);
 		trs.canvas.focus();
 		trs.canvas.setAttribute('tabindex','0');
 		//trs.canvas.setAttribute('contentEditable','true');
@@ -1188,7 +1070,8 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 		this.addEventCallback(this.runtime.inputEventOut, callback);
 	}
 	function onKeyDown(e){
-		console.log('pressed '+e.keyCode+', ['+String.fromCharCode(e.keyCode) +']');
+		//console.log('pressed '+e.keyCode+', ['+String.fromCharCode(e.keyCode) +']');
+
 		e.preventDefault();
 	}
 	truss_o.extendModule(cInput, "view.Input", ["view.Interface", "core.Events", "core.runtime"]);
@@ -1319,6 +1202,7 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 		trs.MetaDrawGradient = drawOval;
 		trs.MetaPostProcess = postProcess;
 		trs.postEffectA = postEffectA;
+		trs.postEffectA_ = postEffectA_;
 		r.metaSpheres.patIMG = trs.LoadImage('img/pattern.png', function(image){
 			r.metaSpheres.patFS = trs.context.createPattern(image, "repeat")
 		});
@@ -1373,7 +1257,7 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
     {
     	if(typeof this.runtime.metaSpheres.patFS === 'undefined')
     		return;
-		 this.context.globalCompositeOperation = "darken";
+		 this.context.globalCompositeOperation = "xor";
 		 this.context.fillStyle = this.runtime.metaSpheres.patFS;
 		 this.context.fillRect(0, 0, this.bounds.width, this.bounds.height);
 		 this.context.globalCompositeOperation = "source-over";
@@ -1399,14 +1283,13 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 		
 		// };
 
-		var o = conv(imageData, [ 1/9, 1/9, 1/9,
-    1/9, 1/9, 1/9,
-    1/9, 1/9, 1/9 ], 0, this.runtime.metaSpheres.tex);
-		(this.runtime.metaSpheres.tex.getContext('2d')).putImageData(o, 0, 0);
-		this.context.globalCompositeOperation = "lighter";
-		this.Clear();
-		 this.context.drawImage(this.runtime.metaSpheres.tex,0,0);
-        // this.context.putImageData(o, 0, 0);
+		var o = conv(imageData, [ 1/2, 1/3, 1/4,
+    1/5, 1/6, 1/6 ], 0, this.runtime.metaSpheres.tex);
+		//(this.runtime.metaSpheres.tex.getContext('2d')).putImageData(o, 0, 0);
+		//this.context.globalCompositeOperation = "lighter";
+		//this.Clear();
+		 //this.context.drawImage(this.runtime.metaSpheres.tex,0,0);
+         this.context.putImageData(o, 0, 0);
     }
     function conv(pixels, weights, opaque,tex) {
 	  var side = Math.round(Math.sqrt(weights.length));
@@ -1495,14 +1378,16 @@ truss_o.say();
 
 		//
 		trs.aabb = {x:0, y:0, max_x:0, max_y:0, is_invalidate:false };
+
 		trs.addEvent('NodeDisposition');
 		trs.addEventCallback('NodeDisposition', NodeInvalidate);
-		trs.NodeDisposition = NodeDisposition_;
+		trs.NodeDisposition = NodeDispositionAABB;
+		trs.AABBboundsUpdate = AABBboundsUpdate;
+
 		// objects xy translation
 		trs.objs_translate = {xoffset:0,yoffset:0};
 		trs.setProps = setProps;
 		trs.setPropsI = setPropsI;
-
 	}
 	function NodeInvalidate(node)
 	{
@@ -1510,7 +1395,14 @@ truss_o.say();
 		this.aabb.max_x = this.aabb.max_y = 0;
 		this.aabb.is_invalidate = true;
 	}
-	function NodeDisposition_(node)
+	function AABBboundsUpdate(left, right, top, bottom)
+	{
+		this.aabb.x = Math.min(left + this.objs_translate.xoffset, this.aabb.x );
+		this.aabb.y = Math.min(top + this.objs_translate.yoffset, this.aabb.y);
+		this.aabb.max_x = Math.max(right + this.objs_translate.xoffset, this.aabb.max_x);
+		this.aabb.max_y = Math.max(bottom + this.objs_translate.yoffset, this.aabb.max_y);
+	}
+	function NodeDispositionAABB(node)
 	{
 		this.aabb.x = Math.min(node.x - this.options.view.node.radius + this.objs_translate.xoffset, this.aabb.x);
 		this.aabb.y = Math.min(node.y - this.options.view.node.radius + this.objs_translate.yoffset, this.aabb.y);
@@ -1715,316 +1607,6 @@ truss_o.say();
 		trs.runtime={};
 	}
 	truss_o.extendModule(cView, "core.runtime");
-}());// "sakura_petalis.js"
-(function(){
-	//"use strict";
-	var backgroundlayer = 'SPetalis.background';
-	var menulayer ='SPetalis.menu';
-
-	function cPetalis(trs)
-	{
-		var iface = {
-			Render:Render,
-			update:update
-		};
-		trs.addViewEngine("SakuraPetalis", iface);
-		//trs.setViewEngine("SakuraPetalis");
-		trs.addLayer(menulayer);
-
-		var r = trs.runtime;
-		r.spetalis = { petalis: [], directionVectors: [], wind: {x: 5, y: 5, speed: 0.24}, dt: 0, 
-		lastInvDate: new Date(), atlasIds: [], invFooDirection: true, flowBatAwait: [] };
-		
-		// load images 
-		var imgId = trs.LoadImage('img/petalis.png');
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 11,13, 89,82));
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 126,13, 79,82));
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 243,13, 91,104));
-
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 7,137, 101,102));
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 120,149, 99,90));
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 237,149, 100,109));
-
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 232,261, 113,130));
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 123,266, 89,87));
-		r.spetalis.atlasIds.push(trs.AddAtlas(imgId, 9,270, 95,88));
-
-		r.spetalis.background = { b1: -1, b2: -1};
-		// r.spetalis.background.b1 = trs.LoadImage('img/bg1.png');
-		// r.spetalis.background.b2 = trs.LoadImage('img/bg2.png');
-		//r.spetalis.background.b3 = trs.LoadImage('img/cherry_blossom_way_by_photosynthetique-d15f5nd.jpg');
-		r.spetalis.background.b3 = trs.LoadImage('img/KUx_Ev0KXHI.jpg');
-
-		prepareVectors(r.spetalis);
-		preparePetalis(r.spetalis, trs.bounds);
-
-		trs.CreateTimer(1000/30, petalisIteration);
-		trs.CreateTimer(1000/4, petalisIterationW);
-		trs.CreateTimer(1000/30, petalisIterationA);
-
-		console.log(r.spetalis);
-
-		trs.AddDisplayMenu("petalisMenu", {items:[
-			{text: 'the links below will opened in this tab', callback: null},
-			{text:'all coded by cerriun', callback: function(){window.location.href='https://github.com/skipme';}}, 
-			//{text:'background by photosynthetique.deviantart.com', callback: function(){window.location.href='http://photosynthetique.deviantart.com/art/Cherry-Blossom-Way-69571417';}}, 
-			]});
-		trs.canvas.oncontextmenu = function() {
-     		return false;  
-		} 
-		// trs.addEventListener("mousedown", function(e)
-		// 	{
-		// 		if(e.which != 1)
-		// 		{
-		// 			var mx = e.pageX-this.bounds.left;
-		// 			var my = e.pageY-this.bounds.top;
-		// 			this.ShowMenu("petalisMenu", mx, my);
-		// 		}
-		// 	});
-	}
-	function prepareVectors(spetalis)
-	{
-		for (var i = 0; i < 200; i++) 
-		{
-			var dv = {x: rnd(-5,5), y: rnd(-5,5), maxX: 0, maxY: 0, minX: 0, minY: 0, incDX: true, incDY: true};
-			if(dv.x === 0 )dv.x = 1;
-			if(dv.y === 0 )dv.y = 1;
-			dv.maxX = dv.x*1.5;
-			dv.maxY = dv.y*1.5;
-
-			dv.minX = dv.x -(dv.maxX - dv.x);
-			dv.minY = dv.y -(dv.maxY - dv.y);
-
-			spetalis.directionVectors.push(dv);
-		};
-		for (var i = 0; i < 5; i++) 
-		{
-			spetalis.flowBatAwait.push(rnd(5000,20000));
-		};
-	}
-	function preparePetalis(spetalis,bounds)
-	{
-		for (var i = 0; i < 500; i++) {
-			spetalis.petalis.push(createFolium(spetalis, bounds));
-		};
-	}
-	function createFolium(spetalis, bounds)
-	{
-		var folium = { dVector: (rnd(0, spetalis.directionVectors.length)-1), windforce: .1, 
-			atlas: (rnd(0, spetalis.atlasIds.length)-1), angle: {now: rnd(0,120), isInc: true}, x: rnd(0,bounds.width), y: rnd(0,bounds.height)
-			, opacity: rnd(1,20), wait_until: (new Date) + rnd(0, 1000)
-			};
-
-		return folium;
-	}
-	function petalisIteration()
-	{
-		var spetalis = this.runtime.spetalis;
-		var nw = (new Date);
-		spetalis.dt = (nw - spetalis.lastInvDate);
-		
-		// adjust dt
-		if(spetalis.dt > 100)
-		{
-			//spetalis.dt %= 10000;
-			//spetalis.dt=5000;
-			spetalis.lastInvDate = nw;
-			spetalis.invFooDirection = !spetalis.invFooDirection;
-		}
-		var dti = spetalis.dt / 100;
-		for (var i = 0; i < spetalis.petalis.length; i++) {
-			foliumIteration(spetalis, spetalis.petalis[i], dti, this.bounds);
-		};
-		this.update();
-	}
-	
-	function foliumIteration(spetalis, folium, dt, bounds)
-	{
-		// console.log(folium.wait_until)
-		if(folium.wait_until > Date.now())
-		{
-			// console.log('gap')
-			return;
-		}
-
-		var dv = back(dt,1);
-
-		// folium.angle = dv * 120;
-
-		var vec = spetalis.directionVectors[folium.dVector];
-		var wind = spetalis.wind;
-		folium.x +=(vec.x+spetalis.wind.x)*wind.speed;//+dv*rnd(0,4);
-		folium.y +=(vec.y+spetalis.wind.y)*wind.speed;//+dv*rnd(0,4);
-		
-
-		if(folium.x > bounds.width)
-		{
-			folium.x = 0;
-			folium.wait_until = Date.now();
-			folium.wait_until += spetalis.flowBatAwait[rnd(0, spetalis.flowBatAwait.length)-1];//rnd(0, 20000);
-			
-		}
-		if(folium.y > bounds.height)
-		{
-			folium.y = 0;
-			folium.wait_until = Date.now();
-			folium.wait_until += spetalis.flowBatAwait[rnd(0, spetalis.flowBatAwait.length)-1];//rnd(0, 20000);
-		}
-
-		if(folium.x < 0)
-		{
-			folium.x = bounds.width;
-		}
-		if(folium.y < 0)
-		{
-			folium.y = bounds.height;
-		}
-	}
-	function petalisIterationA()
-	{
-		var spetalis = this.runtime.spetalis;
-		var nw = (new Date);
-		spetalis.dt = (nw - spetalis.lastInvDate);
-
-		var dv = bounce(spetalis.dt/ 100);
-		dv = Math.abs(dv);
-		//if(dv>1)dv=1;
-		dv*=3;
-		for (var i = 0; i < spetalis.petalis.length; i++) {
-			var folium = spetalis.petalis[i];
-			if(folium.angle.isInc)
-			{
-				folium.angle.now +=dv;
-				if(folium.angle > 120)
-					folium.angle.isInc=false;
-			}else{
-				folium.angle.now -=dv;
-				if(folium.angle < 0)
-					folium.angle.isInc=true;
-			}
-
-		}
-	}
-	function petalisIterationW()
-	{
-		var spetalis = this.runtime.spetalis;
-		var nw = (new Date);
-		spetalis.dt = (nw - spetalis.lastInvDate);
-
-		var dv = bounce(spetalis.dt/ 100);
-		dv = Math.abs(dv);
-		if(dv>1)dv=1;
-
-		for (var i = 0; i < spetalis.directionVectors.length; i++) {
-			var dvec = spetalis.directionVectors[i];
-			
-			if(dvec.incDY)dvec.y +=dv ;
-			if(dvec.incDX) dvec.x +=dv ;
-			if(!dvec.incDX)dvec.x -=dv ;
-			if(!dvec.incDY)dvec.y -=dv ;
-			if(dvec.x >= dvec.maxX)
-			{
-				dvec.incDX = false;
-				dvec.x = dvec.maxX;
-			}
-			if(dvec.y >= dvec.maxY)
-			{
-				dvec.incDY = false;
-				dvec.x = dvec.maxY;
-			}
-			if(dvec.x <= dvec.minX)
-			{
-				dvec.incDX = true;
-				dvec.x = dvec.minX;
-			}
-			if(dvec.y <= dvec.minY)
-			{
-				dvec.incDY = true;
-				dvec.y = dvec.minY;
-			}
-		};
-	}
-	function foliumIterationW(spetalis, folium, dt, bounds)
-	{
-		//folium.dVector = rnd(0, spetalis.directionVectors.length)-1;
-	}
-	function drawSpetalis(trs, spetalis)
-	{
-		// trs.context.globalCompositeOperation = "lighter";
-		var dn = Date.now();
-		for (var i = 0; i < spetalis.petalis.length; i++) {
-			var folium = spetalis.petalis[i];
-			if(folium.wait_until > dn)
-			{
-				continue;
-			}
-	  		trs.context.globalAlpha = folium.opacity/20;
-	  		//trs.DrawAtlas(folium.atlas, folium.x, folium.y, 10, 10);
-	  		trs.DrawAtlasAngle(folium.atlas, folium.x, folium.y, 10, 10, folium.angle.now);
-		};
-		trs.context.globalAlpha = 1;
-		trs.context.globalCompositeOperation = "source-over";
-	}
-	function update()
-	{
-		// this.invalidateLayer(textlayer);
-		this.invalidateLayer(menulayer);
-	}
-	function Render()
-	{
-		this.setLayer();
-		this.Clear();
-		//
-
-		//
-		var spetalis = this.runtime.spetalis;
-		//
-		this.DrawImage(spetalis.background.b3, 0,0, this.bounds.width, this.bounds.height);
-		//
-		drawSpetalis(this, spetalis);
-		this.postEffectA();
-		//
-		//this.DrawImage(spetalis.background.b2, 0,0, this.bounds.width, this.bounds.height);
-		//
-		this.context.fillStyle = "#ffffff";
-		this.SetShadow(0,0,6,"#000000");
-		this.context.fillText(' you are using html5 canvas  ' +this.fps.rate.toFixed(2)+' fps', 14,14);
-		//this.context.fillText('', 14, this.bounds.height - 96);
-		this.SetShadow();
-
-		if(!this.hasLayerData(menulayer))
-		{
-			this.setLayer(menulayer);
-			this.Clear();
-			this.RenderDisplayMenuText(menulayer, true);
-			this.RenderDisplayMenuBackground(menulayer);
-			this.RenderDisplayMenuText(menulayer);
-			this.saveLayer();
-		}
-
-		this.setLayer();
-		this.drawLayer(menulayer);
-	}
-	//
-	function rnd(min,max)
-	{
-		return min + Math.floor((Math.random()*(max-min)+1));
-	}
-	function back(progress, x) 
-	{
-	    return Math.pow(progress, 2) * ((x + 1) * progress - x)
-	}
-	function elastic(progress, x) {
-	  return Math.pow(2, 10 * (progress-1)) * Math.cos(20*Math.PI*x/3*progress)
-	}
-	function bounce(progress) {
-	  for(var a = 0, b = 1, result; 1; a += b, b /= 2) {
-	    if (progress >= (7 - 4 * a) / 11) {
-	      return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2);
-	    }
-	  }
-	}
-	truss_o.extendModule(cPetalis, "view.SakuraPetalis", ["view.Interface", "view.Layers", "objects.Tree", "view.Structure", "core.runtime", "view.Menu", "extBlur"]);
 }());// "shortcuts.js"
 // "structure.js"
 
@@ -2033,6 +1615,7 @@ truss_o.say();
 	function cStructure(trs){
 		trs.mouseDragContext = {startX:0,startY:0};
 		trs.selectedNode = -1;
+		trs.editTextNode = -1;
 		trs.Dragging = false;
 		trs.FieldDragging = false;
 		trs.FieldDraggingPos = {startX:0, startY:0, prevX:0, prevY:0};
@@ -2046,14 +1629,23 @@ truss_o.say();
 			{text:'Connect with...', callback:MTN_connode},
 			{text:'Remove', callback:MTN_removenode},
 			]});
-
+		trs.AddDisplayMenu("field", {items:[
+			{text:'Find node', callback:undefined}, 
+			{text:'---------------'},
+			{text:'Locate to map center', callback:undefined},
+			{text:'play intro video', callback:undefined},
+			{text:'play all history', callback:undefined},
+			]});
 		//
 		trs.DeltasMeasuring = [];
 
-		//trs.addEventListener("click", clicked);
 		trs.addEventListener("mousedown", mdown);
 		trs.addEventListener("mouseup", mup);
 		trs.addEventListener("mousemove", mmove);
+		trs.addEventListener("dblclick", dblclick);
+		trs.addEventListener("click", click);
+		trs.addEventListener("keypress", dkeypress);
+		trs.addEventListener("keydown", onKeyDown);
 
 		trs.addEvent('MouseDragDelta');
 		trs.addEvent('nodeSelected');
@@ -2063,10 +1655,14 @@ truss_o.say();
 		trs.addDeltaMeasuring = addDeltaMeasuring;
 
 		trs.CreateTimer(30, checkDeltas);
-		trs.canvas.oncontextmenu = function() {
-			if(typeof trs.menu.displayMenu === 'undefined' && trs.selectedNode>=0)
+		trs.canvas.oncontextmenu = function(e) {
+			if(e.which === 3)
+				return false;
+			if(typeof trs.getActiveMenuName() === 'undefined')
 			{
-				trs.ShowMenu("test", trs.objects[trs.selectedNode].x, trs.objects[trs.selectedNode].y);
+				if(trs.selectedNode>=0)
+					trs.ShowMenu("node", trs.objects[trs.selectedNode].x, trs.objects[trs.selectedNode].y);
+				else trs.ShowMenu("field", 0, 0);
      		}
      		return false;  
 		} 
@@ -2105,8 +1701,78 @@ truss_o.say();
 
 	}
 
-	function clicked(e)
+	function click(e)
 	{
+
+	}
+	function showTextBoxForSelectedNode(trs)
+	{
+		trs.editTextNode = trs.selectedNode;
+		var txt = trs.objects[trs.editTextNode].label;
+		txt = txt||"";
+		trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
+		trs.PushEvent("nodeEditStart", trs.editTextNode);
+	}
+	function dkeypress(e)
+	{
+		if(this.editTextNode === -1
+			&& e.keyCode === 13 && this.selectedNode >= 0)// enter pressed on selected node
+		{
+			showTextBoxForSelectedNode(this);
+		}else{
+			this.TextBoxInteractionInput(e,null,null,null,null);
+		}
+		e.preventDefault();
+	}
+	function onKeyDown(e){
+		//console.log('pressed '+e.keyCode+', ['+String.fromCharCode(e.keyCode) +']');
+		if(this.editTextNode === -1
+			&& e.keyCode === 13 && this.selectedNode >= 0)// enter pressed on selected node
+		{
+			showTextBoxForSelectedNode(this);
+			e.preventDefault();
+		}else
+		if(e.keyCode === 13 || e.keyCode === 8
+			|| e.keyCode === 37|| e.keyCode === 39
+			|| e.keyCode === 40|| e.keyCode === 38
+			|| e.keyCode === 46|| e.keyCode === 27)
+		{
+			this.TextBoxInteractionInput(e,null,null,null,null);
+			e.preventDefault();
+		}
+	}
+	function dblclick(e)
+	{
+		if(this.editTextNode>=0)
+			return;
+		this.updateBounds();
+
+		var mx = e.pageX-this.bounds.left;
+		var my = e.pageY-this.bounds.top;
+
+		for (var i = 0; i < this.objects.length; i++) {
+			if(hittest(this.objects[i].x + this.objs_translate.xoffset,this.objects[i].y + this.objs_translate.yoffset, this.options.view.node.radius, mx, my))
+			{
+				this.editTextNode = this.nodeSelected = i;
+				break;
+			}
+		}
+		if(this.editTextNode>=0)
+			showTextBoxForSelectedNode(this)
+	}
+	function editAccepted(result)
+	{
+		if(result === "OK")
+		{
+			this.objects[this.editTextNode].label = this.TextBoxTextGet();
+			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label]);
+			this.TextBoxHide();
+			this.editTextNode = -1;
+		}else{
+			this.PushEvent("nodeEditDecline", this.editTextNode);
+			this.TextBoxHide();
+			this.editTextNode = -1;
+		}
 	}
 	function mdown(e)
 	{
@@ -2125,29 +1791,33 @@ truss_o.say();
 			var selectedN=-1;
 			var mx = e.pageX-this.bounds.left;
 			var my = e.pageY-this.bounds.top;
+
+			this.runtime.mx = mx;
+			this.runtime.my = my;
+
 			if(this.menu.displayMenu)
 			{
 				if(this.processInteractionMMdown(e.which, mx, my))
 					return;
 			}
 			var sameSelected = false;
-
-			for (var i = 0; i < this.objects.length; i++) {
-				if(hittest(this.objects[i].x + this.objs_translate.xoffset,this.objects[i].y + this.objs_translate.yoffset, this.options.view.node.radius, mx, my))
-				{
-					if(this.selectedNode === i)
+			if(this.editTextNode===-1)
+				for (var i = 0; i < this.objects.length; i++) {
+					if(hittest(this.objects[i].x + this.objs_translate.xoffset,this.objects[i].y + this.objs_translate.yoffset, this.options.view.node.radius, mx, my))
 					{
-						sameSelected = true;
-						continue;
+						if(this.selectedNode === i)
+						{
+							sameSelected = true;
+							continue;
+						}
+						sameSelected = false;
+						
+						this.PushEvent("nodeSelected", i);
+						selectedN = i;
+						break;
 					}
-					sameSelected = false;
-					
-					this.PushEvent("nodeSelected", i);
-					selectedN = i;
-					break;
 				}
-			}
-			if(selectedN < 0 && !sameSelected)
+			if(selectedN < 0 && !sameSelected && this.editTextNode===-1)
 			{
 				this.invokeEvent('nodeFocusLost', [this.selectedNode, -1, this.objects[this.selectedNode]]);
 				this.selectedNode = -1
@@ -2156,14 +1826,16 @@ truss_o.say();
 			if(e.which == 1)
 			{
 				this.HideMenu();
-				if(this.selectedNode >= 0)
+				if(this.selectedNode >= 0 && this.editTextNode===-1)
 				{
 					this.Dragging = true;
 					//console.log("dragging on");
 					this.DragList = this.GetRelatedObjectsDeep(this.selectedNode);
 					for (var i = 0; i < this.DragList.length; i++) {
-						o = this.objects[this.DragList[i]];
-						o.targetX = 0;o.targetY = 0; o.dragOn = false;
+						var o = this.objects[this.DragList[i]];
+						o.targetX = 0;
+						o.targetY = 0; 
+						o.dragOn = false;
 					};
 					this.mouseDragContext.startX = mx - this.objects[this.selectedNode].x - this.objs_translate.xoffset;
 					this.mouseDragContext.startY = my - this.objects[this.selectedNode].y - this.objs_translate.yoffset;
@@ -2174,22 +1846,26 @@ truss_o.say();
 					this.objects[this.selectedNode].prevy = this.objects[this.selectedNode].y;
 				}
 			
-				this.FieldDragging = selectedN == -1;
-				if(this.FieldDragging)
+				this.FieldDragging = (selectedN == -1) && this.editTextNode===-1;
+				if(this.FieldDragging )
 				{
 					this.FieldDraggingPos.startX = mx;
 					this.FieldDraggingPos.startY = my;
 					this.FieldDraggingPos.prevX = this.objs_translate.xoffset;
 					this.FieldDraggingPos.prevY = this.objs_translate.yoffset;
 				}
-				this.update();
-			} else {
+
+			} else if(this.editTextNode===-1) {
 				if(this.selectedNode >= 0)
 				{
 					this.ShowMenu("node", mx, my);
 				}else{
-					this.HideMenu();
+					console.log("mdown", this.getActiveMenuName())
+					if(this.getActiveMenuName() !== undefined)
+						this.HideMenu();
+					else this.ShowMenu("field", mx, my);
 				}
+
 			}
 		}
 		this.canvas.focus();
@@ -2197,7 +1873,12 @@ truss_o.say();
 	}
 	function mup(e)
 	{
-		//console.log("mup");
+		var mx = e.pageX-this.bounds.left;
+		var my = e.pageY-this.bounds.top;
+
+		this.runtime.mx = mx;
+		this.runtime.my = my;
+
 		if(e.which == 1)
 		{
 			if(this.FieldDragging)
@@ -2211,10 +1892,14 @@ truss_o.say();
 				//console.log("dragging off", e);
 			}
 		}
+		this.TextBoxInteractionInput(null,null,
+			null,e,null);
 		e.preventDefault();
 	}
 	function mmove(e)
 	{
+		this.acceptSetCursor(true);// assume only mouse move event can change cursor style
+		this.setCursor("default")
 		var mx = e.pageX-this.bounds.left;
 		var my = e.pageY-this.bounds.top;
 		
@@ -2246,6 +1931,9 @@ truss_o.say();
 				this.update();
 		}
 		this.processInteractionMMove(mx, my);
+		this.TextBoxInteractionInput(null,null,
+			null,null,e);
+		this.acceptSetCursor(false);// assume only mouse move event can change cursor style
 		e.preventDefault()
 	}
 
@@ -2297,6 +1985,453 @@ truss_o.say();
 		}
 	}
 	truss_o.extendModule(cStructure, "view.Structure", ["view.Input", "core.Events", "core.Animate", "objects.Tree", "view.Interface", "view.Menu"]);
+}());// "textbox.js"
+(function(){
+
+	function cTextBox(trs){
+		trs.TextBox = { x: 0, y: 0, width: 128, height: 14, isOnDisplay: false, activeBox:
+		 {multiline: false, label: "nolabel",
+		 	caretOnDisplay: 0.1, caretOnDisplayAlphaIncStep: 3*1.0/30, caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
+		 	state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: 0,
+		 	text: "first line", lines: 
+		 	[{t: "first line", w: 0, davw: 0, y: 0}, {t: "second line", w: 0, davw: 0, y: 0}, 
+		 	{t: "x", w: 0, davw: 0, y: 0}, {t: "xu", w: 0, davw: 0, y: 0}
+		 	], 
+		 	fadeIn: 0, fadeOut: false
+		  }
+		 };
+
+		trs.TextBoxShow = showTextBox;
+		trs.TextBoxHide = hideTextBox;
+		trs.TextBoxTextGet = GetText;
+		trs.TextBoxInteractionInput = interactionInput;
+		trs.TextBoxGetSelectedText = getSelectedText;
+
+		trs.TextBoxRender = drawTextBox;
+		trs.CreateTimer(1000/30, shHideCaretAndFade);
+	}
+	function GetText()
+	{
+		var result = "";
+		for (var i = 0; i < this.TextBox.activeBox.lines.length; i++) {
+			result += this.TextBox.activeBox.lines[i].t;
+		};
+		return result;
+	}
+	function shHideCaretAndFade()
+	{
+		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+		{
+			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep;
+			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay > 1)
+			{
+				var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
+
+				if(this.TextBox.activeBox.caretOnDisplay < 0)
+					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod;
+				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod * -1;
+
+			}
+			if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
+			{
+				this.TextBox.activeBox.fadeIn +=0.25;
+			}else
+			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
+			{
+				this.TextBox.activeBox.fadeIn -=0.25;
+			}
+			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
+				this.TextBox.activeBox.fadeOut = false;
+
+			this.update();	
+		}
+	}
+	var ignoreCodes = [95,93,125,123,91,160,171,92,8230,187];
+	function interactionInput(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
+	{
+		if(!this.TextBox.isOnDisplay)
+			return;
+		var acb = this.TextBox.activeBox;
+		if(mouseMove !== null)
+		{
+			var e = mouseMove;
+			var mx = this.runtime.mx;
+			var my = this.runtime.my;
+			var hit = false;
+			for (var i = 0; i < acb.lines.length; i++) {
+				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
+				{ 
+					hit = true;
+					break;
+				}
+				if(!this.TextBox.multiline)
+					break;
+			};
+			if(hit)
+			{
+				this.setCursor("text")
+			}
+		}else if(mouseUp !== null && mouseUp.which === 1)
+		{
+			var e = mouseUp;
+			var mx = this.runtime.mx;
+			var my = this.runtime.my;
+			// set caret position
+			// assume drag over point
+
+			setTextParams(this)
+			for (var i = 0; i < acb.lines.length; i++) {
+				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
+				{ 
+					hitCursorToCaret(this, i, mx);
+					acb.caretSETupDownX = acb.caretPositionX;
+				}
+				if(!this.TextBox.multiline)
+					break;
+			};
+
+		}else if(keyboardDownEvent !== null){
+			var e = keyboardDownEvent;
+			if(e.keyCode === 8)// backspace
+			{ 
+				var str = acb.lines[acb.caretLine].t;
+
+				if(acb.caretIndex == -1)
+				{
+					if(acb.caretLine > 0 && this.TextBox.multiline)
+					{
+						var cp  = acb.lines[acb.caretLine - 1].t.length-1;
+						acb.lines[acb.caretLine - 1].t = acb.lines[acb.caretLine - 1].t + str;
+						acb.caretLine--; 
+						acb.caretPositionY = acb.lines[acb.caretLine].y;
+						acb.caretSETupDownX = acb.caretPositionX = acb.lines[acb.caretLine].w + this.TextBox.x;	
+						acb.caretIndex=cp;
+						this.TextBox.activeBox.measured = false;
+						acb.lines.splice(acb.caretLine+1, 1);
+					}
+				}else{
+					var newleft = str.substr(0, acb.caretIndex);
+					setTextParams(this)
+					var dim = this.context.measureText(newleft);
+					acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+1, str.length - acb.caretIndex-1);
+					acb.caretIndex--;
+					acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
+					this.TextBox.activeBox.measured = false;
+				}
+			}else if(e.keyCode === 37)// left arrow
+			{
+				if(e.ctrlKey)
+				{
+					var letterscoped = false;
+					var ctrace = acb.caretIndex;
+					while(ctrace >= 0)
+					{
+						var chc = acb.lines[acb.caretLine].t.charCodeAt(ctrace);
+       					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
+       					{
+       						if(letterscoped){
+	       						acb.caretIndex = ctrace; 
+	       						break;
+	       					}
+       					}else{
+       						if(!letterscoped)
+       							letterscoped = true;
+       					}
+						ctrace--;
+					}
+					if(ctrace === -1 && letterscoped)
+						acb.caretIndex = -1;
+				}else{
+					acb.caretIndex--;
+				}
+				if(acb.caretIndex < -1)//clip
+					acb.caretIndex = -1;
+				setTextParams(this);
+				var dim = this.context.measureText(acb.lines[acb.caretLine].t.substr(0, acb.caretIndex+1));
+				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
+			}else if(e.keyCode === 39)// right arrow
+			{
+				if(e.ctrlKey)
+				{
+					var letterscoped = false;
+					var nextword = false;
+					var ctrace = acb.caretIndex;
+					var tl = acb.lines[acb.caretLine].t.length;
+					while(ctrace < tl)
+					{
+						var chc = acb.lines[acb.caretLine].t.charCodeAt(ctrace);
+       					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
+       					{
+       						if(letterscoped)
+       							nextword = true;
+ 
+       					}else{
+       						if(!letterscoped)
+       							letterscoped = true;
+       						else if(nextword)
+       						{
+	       						acb.caretIndex = ctrace-1; 
+	       						break;
+       						}
+       					}
+						ctrace++;
+					}
+					if(ctrace === tl && letterscoped)
+						acb.caretIndex = tl - 1;
+				}else{
+					acb.caretIndex++;
+				}
+
+				if(acb.caretIndex > acb.lines[acb.caretLine].t.length)//clip
+					acb.caretIndex = acb.lines[acb.caretLine].t.length - 1;
+				setTextParams(this);
+				var dim = this.context.measureText(acb.lines[acb.caretLine].t.substr(0, acb.caretIndex+1));
+				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
+			}else if(e.keyCode === 40 && this.TextBox.multiline)// down arrow
+			{
+				acb.caretLine++;
+				if(acb.caretLine >= acb.lines.length)
+					acb.caretLine = acb.lines.length - 1;
+
+				hitCursorToCaret(this, acb.caretLine, acb.caretSETupDownX);
+
+			}else if(e.keyCode === 38 && this.TextBox.multiline)// up arrow
+			{
+				acb.caretLine--;
+				if(acb.caretLine < 0)
+					acb.caretLine = 0;
+				hitCursorToCaret(this, acb.caretLine, acb.caretSETupDownX);
+
+			}else if(e.keyCode === 46)// del/delete
+			{
+				var str = acb.lines[acb.caretLine].t;
+				if(str.length >= acb.caretIndex+2)
+				{
+					var newleft = str.substr(0, acb.caretIndex+1);
+
+					acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+2, str.length - acb.caretIndex-1);
+					this.TextBox.activeBox.measured = false;
+				}
+
+			}else if(e.keyCode == 27)
+			{
+				if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
+					acb.acceptedOrDeclined.call(this, "ESCAPE");
+			}
+			else if(e.keyCode === 13)// enter
+			{
+				// todo: accept input changes
+				if(this.TextBox.multiline)
+				{
+					var str = acb.lines[acb.caretLine].t;
+					acb.caretLine++;
+					if(acb.caretLine > acb.lines.length)
+						throw '';
+					if(acb.caretLine === acb.lines.length)
+						acb.lines.push({t: "xu", w: 0, davw: 0, y: 0});
+					else acb.lines.splice(acb.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
+
+					acb.lines[acb.caretLine-1].t = str.substr(0, acb.caretIndex+1);
+					acb.lines[acb.caretLine].t = str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
+					acb.caretIndex = -1;
+					acb.caretPositionY = acb.lines[acb.caretLine-1].y+12;
+					acb.caretSETupDownX = acb.caretPositionX = this.TextBox.x;
+					this.TextBox.activeBox.measured = false;
+				}else{
+					if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
+						acb.acceptedOrDeclined.call(this, "OK");
+				}
+			}else{
+				// input
+		        var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
+	      		var keychar = String.fromCharCode(key);
+
+	      		var str = acb.lines[acb.caretLine].t;
+	      		setTextParams(this)
+	      		var dim = null;
+	      		if(acb.caretIndex>=0)
+	      		{
+		      		var left = str.substr(0, acb.caretIndex+1);
+					acb.lines[acb.caretLine].t = left+keychar+str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
+					dim = this.context.measureText(left+keychar);
+				}else{
+					acb.lines[acb.caretLine].t = keychar+str;
+					dim = this.context.measureText(keychar);
+				}
+
+				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
+				this.TextBox.activeBox.measured = false;
+				acb.caretIndex++;
+				// console.log(keychar)
+			}
+		}
+	}
+	function hitCursorToCaret(trs, lineIndex, x)
+	{
+		var acb = trs.TextBox.activeBox;
+
+		var avgindex = -1;
+		if(acb.lines[lineIndex].t.length > 0)
+		{
+			avgindex = Math.floor((x-trs.TextBox.x) / acb.lines[lineIndex].davw)-1;
+			if(avgindex < -1)
+				avgindex = -1;
+			
+			setTextParams(trs);
+			
+			var tl = acb.lines[lineIndex].t.length;
+			var dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+
+			if(avgindex >= tl)
+			{	
+				avgindex = tl-1;
+
+			}else{
+
+				while((dim.width + trs.TextBox.x < x) && avgindex >= 0 && avgindex < tl)
+				{
+					avgindex ++;
+					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+				}
+				var delta1 = dim.width + trs.TextBox.x - x;
+				var dim2 = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex));
+				//var delta2 = Math.abs(dim.width + trs.TextBox.x - x);
+				if(delta1 > 3)
+				{	
+					avgindex--;
+					dim = dim2;
+				}
+				if(avgindex >= tl)
+				{	
+					avgindex = tl-1;
+					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+				}
+			}
+
+			acb.caretPositionX = dim.width + trs.TextBox.x;
+		}else
+		{
+			acb.caretPositionX = trs.TextBox.x;
+		}
+		acb.caretPositionY = acb.lines[lineIndex].y;
+		acb.caretIndex = avgindex;
+		acb.caretLine = lineIndex;
+	}
+	function drawTextBox()
+	{
+		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+		{
+			this.SetShadow();
+			if(!this.TextBox.activeBox.measured)
+				drawTextBoxText(this, true);
+			drawTextBoxBackground(this);
+			drawTextBoxText(this, false);
+		}
+	}
+	function drawTextBoxBackground(trs)
+	{
+		var acb = trs.TextBox.activeBox;
+		trs.SetShadow(0,0,4,"rgba(255, 255, 255, "+Math.min(0.5,trs.TextBox.activeBox.fadeIn)+")");
+		
+		//255, 187, 40
+		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-4, trs.TextBox.width+4, trs.TextBox.height+4);
+		trs.SetShadow();
+		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-(4+12+2), trs.TextBox.width+4, 12+2);
+		
+		trs.context.font = "8pt Verdana";
+		trs.context.fillStyle = "rgba(255, 255, 255, "+trs.TextBox.activeBox.fadeIn+")";
+		trs.context.fillText(trs.TextBox.activeBox.label+":", trs.TextBox.x, trs.TextBox.y-(12+2));
+	}
+
+	function setTextParams(trs)
+	{
+		trs.SetShadow();
+		trs.context.font = "10pt Verdana";
+		trs.context.textBaseline ="top";
+		trs.context.textAlign = 'start';
+		trs.context.fillStyle = "rgba(0, 0, 0, "+trs.TextBox.activeBox.fadeIn+")";//"rgb(0, 0, 0)";
+	}
+	function drawTextBoxText(trs, measureOnly)
+	{
+		setTextParams(trs)
+		// ---
+
+		var acb = trs.TextBox.activeBox;
+		for (var i = 0; i < acb.lines.length; i++) {
+			if(measureOnly)
+			{
+				var dim = trs.context.measureText(acb.lines[i].t);
+				acb.lines[i].w = dim.width;
+				acb.lines[i].davw = dim.width / acb.lines[i].t.length;
+				acb.lines[i].y = trs.TextBox.y + (i*12);
+			}
+			else
+			{		
+				trs.context.fillText(acb.lines[i].t, trs.TextBox.x, acb.lines[i].y);
+			}
+			if(!trs.TextBox.multiline)
+				break;
+		};
+		if(measureOnly)
+		{
+			trs.TextBox.activeBox.measured = true;
+			return;
+		}
+		// ---
+		// var cop = trs.context.globalCompositeOperation;
+		// trs.context.globalCompositeOperation = "lighter";
+		trs.context.strokeStyle = "rgba(0, 0, 0, "+Math.min(acb.caretOnDisplay,acb.fadeIn)+")";
+		trs.context.beginPath();
+		trs.context.lineWidth = 1;
+		trs.context.moveTo(acb.caretPositionX+.5, acb.caretPositionY + -2+1);
+		trs.context.lineTo(acb.caretPositionX +.5, acb.caretPositionY + 2+10);
+		trs.context.closePath();
+    	trs.context.stroke();
+    	// trs.context.globalCompositeOperation = cop;
+
+		//trs.TextBox.activeBox.caretOnDisplay
+	}
+	function showTextBox(x, y, label, text, ismultiline, acceptedOrDeclined)
+	{
+		if(x === "right")
+		{
+			x = this.bounds.width - this.TextBox.width - 4; 
+		}
+		this.TextBox.x = x;
+		this.TextBox.y = y;
+
+		this.TextBox.activeBox.acceptedOrDeclined = acceptedOrDeclined;
+		this.TextBox.activeBox.label = label;
+		this.TextBox.activeBox.text = text;
+		this.TextBox.activeBox.lines = [{t: text, w: 0, davw: 0, y: y}];
+		hitCursorToCaret(this, 0, x+1,y+1)
+		this.TextBox.activeBox.fadeIn = 0;
+		this.TextBox.activeBox.measured = false;
+		this.TextBox.isOnDisplay = true;
+
+		this.update();	
+	}
+	function hideTextBox()
+	{
+		this.TextBox.isOnDisplay = false;
+		this.TextBox.activeBox.fadeOut = true;
+		this.update();	
+	}
+	function resizeTextBox(width, height)
+	{
+
+	}
+	function getSelectedText()
+	{
+
+	}
+	function hittestrect(x,y,w,h,hitX,hitY) {
+		return(x<hitX&&x+w>=hitX&&y<hitY&&y+h>=hitY);
+	}
+
+	truss_o.extendModule(cTextBox, "view.TextBox", ["view.Interface", "core.Animate"]);
 }());// "timeline.js"
 // "view.js"
 
@@ -2323,11 +2458,26 @@ truss_o.say();
         trs.SetShadow = Shadow;
         trs.drawArrow = drawArrow;
 
+        trs.cursorStyle = "reset";
+        trs.lastCursorSet = "default";
+        trs.setCursor = setCursor;
+        trs.acceptSetCursor = acceptSetCursor;
+
         trs.addEventCallback("NodeAdded", NodeAdded);
         trs.addEventCallback("NodesSeparated", NodesSeparated);
         trs.addEventCallback("NodeRemoved", NodeRemoved);
         trs.addEventCallback("Render", Render);
         trs.addEventCallback("update", update);
+    }
+    function setCursor(style){
+        if(this.cursorStyle !== style)
+            this.cursorStyle = style;
+    }
+    function acceptSetCursor(up){
+        if(up)
+            this.cursorStyle = "reset";
+        else if(this.cursorStyle!=="reset" && this.lastCursorSet != this.cursorStyle)
+            this.canvas.style.cursor = this.lastCursorSet = this.cursorStyle;
     }
     function updateBounds(trs) {
         trs.bounds = {
@@ -2587,125 +2737,12 @@ truss_o.say();
 
 		trs.setBackground = setBackground;
 		//trs.ShowMenu("test", 112, 120);
-		// trs.CreateTimer(1000/30, flexesIteration);
 	}
-	function drawFlexes(trs,flexes)
-	{
-		for (var i = 0; i < flexes.length; i++) {
-			f=flexes[i];
-			if(!f.visible)
-				continue;
-			//trs.context.fillStyle = "rgba(255, 255, 255, 0.8)";
-			// trs.context.fillStyle = "rgba(255, 255, 255, 0."+f.opacity+")";
-			// trs.context.beginPath();
-	  //   	trs.context.arc(f.x, f.y, f.szR, 0, 2 * Math.PI, false);
-	  //   	trs.context.closePath();
-	  //   	trs.context.fill();
-	  		// trs.context.globalCompositeOperation = "lighter";
-	  		trs.context.globalAlpha = f.opacity/20;
-	  		trs.DrawAtlas(f.atlas, f.x, f.y, f.szR, f.szR);
-		};
-		trs.context.globalAlpha = 1;
-	}
-	function drawFlexesOvals(trs,flexes)
-	{
-		//trs.SetShadow(0,0,6,"rgb(255, 255, 255)");
-		for (var i = 0; i < flexes.length; i++) {
-			f=flexes[i];
-			if(!f.visible)
-				continue;
-			//trs.context.fillStyle = "rgba(255, 255, 255, 0.8)";
-			trs.context.fillStyle = "rgba(255, 255, 255, 0."+f.opacity+")";
-			trs.context.beginPath();
-	    	trs.context.arc(f.x, f.y, f.szR, 0, 2 * Math.PI, false);
-	    	trs.context.closePath();
-	    	trs.context.fill();
-		};
-	}
-	function flexesIteration()
-	{
-		var trs = this;
-		if(typeof trs.flexes === 'undefined')
-		{
-			// var imgId = trs.LoadImage('img/snow_flx.pnga_t.png');
-			// atlasIds.push(trs.AddAtlas(imgId, 0,0, 22,29));
-			// atlasIds.push(trs.AddAtlas(imgId, 23,0, 22,29));
-			// atlasIds.push(trs.AddAtlas(imgId, 44,0, 22,29));
-			var imgId = trs.LoadImage('img/petalis.png');
-			atlasIds.push(trs.AddAtlas(imgId, 11,13, 89,82));
-			atlasIds.push(trs.AddAtlas(imgId, 126,13, 79,82));
-			atlasIds.push(trs.AddAtlas(imgId, 243,13, 91,104));
-
-			trs.flexes = {layblink:[],lay1:[],lay2:[],lay3:[],lastIteration:new Date(),lastIterationVis:new Date()};
-			flexCnt = 190;
-			trs.updateBounds();
-			
-			popFlexes(trs.flexes.lay1, flexCnt, trs.bounds);
-			popFlexes(trs.flexes.lay2, flexCnt, trs.bounds);
-			popFlexes(trs.flexes.layblink, flexCnt, trs.bounds);
-			popFlexes(trs.flexes.lay3, flexCnt, trs.bounds);
-
-			
-		}else{
-			iterateFlexes(trs.flexes.lay1, trs.bounds);
-			iterateFlexes(trs.flexes.lay2, trs.bounds);
-			iterateFlexes(trs.flexes.layblink, trs.bounds);
-			iterateFlexes(trs.flexes.lay3, trs.bounds);
-			if((new Date()) - trs.flexes.lastIterationVis > 1000)
-			{
-				iterateFlexesVis(trs.flexes.layblink);
-				trs.flexes.lastIterationVis=new Date();
-			}
-			trs.flexes.lastIteration=Date();
-			trs.update();
-		}
-	}
-	function iterateFlexes(flexes, bounds)
-	{
-		for (var i = 0; i < flexes.length; i++) {
-			var f=flexes[i];
-			f.x+=f.stepx;
-			f.y+=f.stepy;
-			if(f.x > bounds.width)
-				f.x = 0;
-			if(f.y > bounds.height)
-				f.y = 0;
-			if(f.x<0)
-				f.x = bounds.width;
-			
-		};
-	}
-	function iterateFlexesVis(flexes)
-	{
-		for (var i = 0; i < flexes.length; i++) {
-			f=flexes[i];
-			f.visible=rnd(1,20)!=10;
-		};
-	}
-	function popFlexes(flexes, max, bounds)
-	{
-		for (var i = 0; i < max; i++) {
-			var f = {visible:true, szR:rnd(3,12), x:rnd(0,bounds.width),y:rnd(0,bounds.height), 
-				stepx:rnd(-1,3), stepy:rnd(1,3), opacity:rnd(1,20),
-				atlas: (rnd(0, atlasIds.length) -1)};
-			if(f.stepx==0)
-				f.stepx=1;
-			flexes.push(f);
-		};
-	}
+	
 	function rnd(min,max){
 		return min + Math.floor((Math.random()*(max-min)+1));
 	}
-	function drawAllFlexes(trs){
-		if(typeof trs.flexes != 'undefined')
-		{
-			drawFlexes(trs ,trs.flexes.lay1);
-			drawFlexes(trs, trs.flexes.layblink)
-			drawFlexes(trs, trs.flexes.lay2);
-			drawFlexes(trs, trs.flexes.lay3);
-			//trs.blurCanvas();
-		}
-	}
+
 	function update()
 	{
 		this.invalidateLayer(textlayer);
@@ -2726,8 +2763,8 @@ truss_o.say();
 	{
 		trs.SetShadow();
 		trs.context.lineWidth = 1;
-		trs.context.strokeStyle = "#FaFaFa";
-		trs.context.strokeRect(trs.aabb.x,trs.aabb.y,trs.aabb.max_x-trs.aabb.x,trs.aabb.max_y-trs.aabb.y);
+		trs.context.strokeStyle = "#aaFaFa";
+		trs.context.strokeRect(trs.aabb.x+.5-2,trs.aabb.y+.5-2,trs.aabb.max_x-trs.aabb.x+2,trs.aabb.max_y-trs.aabb.y+2);
 	}
 	function updateLayers()
 	{
@@ -2812,21 +2849,39 @@ truss_o.say();
                 	}else{
                 		this.context.fillStyle = this.context.strokeStyle = "#aaaaaa";
                 	}
+                }else {
+                	this.context.strokeStyle = "#FFFFFF";
                 }
                 
 				this.drawArrow(cx1,cy1,x,y,3,1,Math.PI/4,radius);
 			};
   			//this.SetShadow(2,2,6,"rgba(0, 0, 0, 0.8)");
+
+  			this.context.lineWidth = 1;
+  			this.context.strokeStyle = "#FFFFFF";
 			for (var i = 0; i < this.objects.length; i++) {
 				
-	    		this.context.lineWidth = .5;
-	    		if(this.selectedNode == i)
+	    		if(this.editTextNode === i)
+	    		{
+	    			this.context.fillStyle = "rgba(255, 187, 40, 0.8)";
+	    			this.context.strokeStyle = "rgb(255, 187, 40)";
+	    			//textbox connection
+						this.context.beginPath();
+				    	this.context.moveTo(this.objects[i].x+0.5, this.objects[i].y+0.5);
+						this.context.lineTo(this.TextBox.x- this.objs_translate.xoffset, this.TextBox.y- this.objs_translate.yoffset);
+				    	this.context.closePath();
+				    	this.context.fill();
+				    	this.context.stroke();
+				    //~
+				    this.context.strokeStyle = "#FFFFFF";
+	    		}else if(this.selectedNode === i)
 	    		{
 	    			this.context.fillStyle = "rgba(68, 110, 150, 0.6)";
-	    		}else{
+	    		}
+	    		else{
 	    			this.context.fillStyle = "rgba(0, 0, 0, 0.2)";
 	    		}
-	    		this.context.strokeStyle = "#FFFFFF";
+	    		
 				this.context.beginPath();
 		    	this.context.arc(this.objects[i].x, this.objects[i].y, this.options.view.node.radius, 0, 2 * Math.PI, false);
 		    	this.context.closePath();
@@ -2834,12 +2889,12 @@ truss_o.say();
 		    	this.context.stroke();
 
 		    	this.NodeDisposition(this.objects[i]);
+
 			}
-			if(this.aabb.is_invalidate)
-				this.aabb.is_invalidate = false;
+			// if(this.aabb.is_invalidate)
+			// 	this.aabb.is_invalidate = false;
 			this.context.translate(-this.objs_translate.xoffset,-this.objs_translate.yoffset);
-			// aa bb box
-			drawAABB(this);
+
 
 			this.saveLayer();
 
@@ -2848,42 +2903,51 @@ truss_o.say();
 			this.drawLayer(nodelayer);
 		//}
 		// text layer
-			if(!this.runtime.InvalidateTextlayer && this.hasLayerData(textlayer))
-			{
+			//if(!this.runtime.InvalidateTextlayer && this.hasLayerData(textlayer))
+			//{
 				//this.SetShadow();
 				//this.drawLayer(textlayer);
-			} else {
+			//} else {
 				this.runtime.InvalidateTextlayer = false;
 				this.setLayer(textlayer);
 				this.Clear();
 				this.context.font = "9pt Verdana";
 				this.SetShadow();
 				this.context.translate(this.objs_translate.xoffset,this.objs_translate.yoffset);
-				//this.SetShadow(5,5,4,"rgba(0, 0, 0, 0.3)");
+
 				this.context.fillStyle = "rgb(255, 255, 255)";
 				for (var i = 0; i < this.objects.length; i++) {
-					if(this.objects[i].label != undefined){
+					if(this.objects[i].label !== undefined){
 						
 		  				var dim = this.context.measureText(this.objects[i].label);
 		  				var tx = this.objects[i].x-this.options.view.node.radius - dim.width - 4;
 		  				var ty = this.objects[i].y+this.options.view.node.radius*.5;
 
-		  				this.context.fillStyle = "rgba(100, 100, 100, 0.5)";
+		  				this.context.fillStyle = "rgba(255, 255, 255, 0.1)";
 		  				this.context.fillRect(tx,ty-10,dim.width, 12)
 
 		  				this.context.fillStyle = "rgb(255, 255, 255)";
 		  				this.context.fillText(this.objects[i].label, tx, ty);
+		  				this.AABBboundsUpdate(tx, tx+dim.width, ty, ty+12);
 		  			}
-		  			if(this.objects[i].labelRight != undefined){
+		  			if(this.objects[i].labelRight !== undefined){
+		  				var dim = this.context.measureText(this.objects[i].labelRight);
+		  				var tx = this.objects[i].x+this.options.view.node.radius+ 4;
+		  				var ty = this.objects[i].y+this.options.view.node.radius*.5;
+
+		  				this.context.fillStyle = "rgba(255, 255, 255, 0.1)";
+		  				this.context.fillRect(tx,ty-10,dim.width, 12)
 
 						this.context.fillStyle = "rgb(255, 255, 255)";
-		  				this.context.fillText(this.objects[i].labelRight, this.objects[i].x+this.options.view.node.radius + 4,
-		  				 	this.objects[i].y+this.options.view.node.radius*.5);
+		  				this.context.fillText(this.objects[i].labelRight, tx, ty);
+		  				this.AABBboundsUpdate(tx, tx + dim.width, ty-10 ,ty + 12);
 		  			}
 				}
 				this.context.translate(-this.objs_translate.xoffset,-this.objs_translate.yoffset);
+				// aa bb box
+				drawAABB(this);
 				this.saveLayer();
-			}
+			//}
 		// 
 		if(this.runtime.temporaryConnection)
 		{
@@ -2916,9 +2980,9 @@ truss_o.say();
 		{
 			this.setLayer(menulayer);
 			this.Clear();
-			this.RenderDisplayMenuText(menulayer, true);
-			this.RenderDisplayMenuBackground(menulayer);
-			this.RenderDisplayMenuText(menulayer);
+
+			this.TextBoxRender();
+			this.RenderMenu(menulayer, menulayer);
 			this.saveLayer();
 		}
 

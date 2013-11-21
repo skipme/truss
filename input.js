@@ -13,7 +13,7 @@
 		trs.PushEvent = PushEvent;
 		trs.DispatchEvents = DispatchEvents;
 
-		//trs.addEventListener("keydown", onKeyDown);
+		// trs.addEventListener("keydown", onKeyDown);
 		//trs.addEventListener("keypress", onKeyDown);
 		trs.canvas.focus();
 		trs.canvas.setAttribute('tabindex','0');
@@ -28,7 +28,8 @@
 		this.addEventCallback(this.runtime.inputEventOut, callback);
 	}
 	function onKeyDown(e){
-		console.log('pressed '+e.keyCode+', ['+String.fromCharCode(e.keyCode) +']');
+		//console.log('pressed '+e.keyCode+', ['+String.fromCharCode(e.keyCode) +']');
+
 		e.preventDefault();
 	}
 	truss_o.extendModule(cInput, "view.Input", ["view.Interface", "core.Events", "core.runtime"]);

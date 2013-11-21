@@ -130,7 +130,6 @@
 					acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
 					this.TextBox.activeBox.measured = false;
 				}
-				
 			}else if(e.keyCode === 37)// left arrow
 			{
 				if(e.ctrlKey)
