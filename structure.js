@@ -42,7 +42,9 @@
 		trs.addDeltaMeasuring = addDeltaMeasuring;
 
 		trs.CreateTimer(30, checkDeltas);
-		trs.canvas.oncontextmenu = function() {
+		trs.canvas.oncontextmenu = function(e) {
+			if(e.which === 3)
+				return false;
 			if(typeof trs.getActiveMenuName() === 'undefined')
 			{
 				if(trs.selectedNode>=0)
@@ -97,7 +99,10 @@
 	}
 	function dblclick(e)
 	{
-		this.TextBoxShow(250, 250);
+		if(this.TextBox.isOnDisplay)
+			this.TextBoxHide();
+		else
+			this.TextBoxShow(250, 250, "left Caption", "Мама мыла раму");
 	}
 	function mdown(e)
 	{
@@ -181,6 +186,7 @@
 				{
 					this.ShowMenu("node", mx, my);
 				}else{
+					console.log("mdown", this.getActiveMenuName())
 					if(this.getActiveMenuName() !== undefined)
 						this.HideMenu();
 					else this.ShowMenu("field", mx, my);

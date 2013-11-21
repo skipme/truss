@@ -1,15 +1,16 @@
 (function(){
 
 	function cTextBox(trs){
-		trs.TextBox = { x: 0, y: 0, width: 256, height: 12, isOnDisplay: false, activeBox:
-		 {multiline: false,  
+		trs.TextBox = { x: 0, y: 0, width: 128, height: 14, isOnDisplay: false, activeBox:
+		 {multiline: false, label: "nolabel",
 		 	caretOnDisplay: 0.1, caretOnDisplayAlphaIncStep: 3*1.0/30, caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
 		 	state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: 0,
-		 	text: "first line", lines: [{t: "first line", w: 0, davw: 0, y: 0}, {t: "second line", w: 0, davw: 0, y: 0}, 
-		 	{t: "x", w: 0, davw: 0, y: 0}
-		 	, {t: "xu", w: 0, davw: 0, y: 0}
-		 	] 
-		 }
+		 	text: "first line", lines: 
+		 	[{t: "first line", w: 0, davw: 0, y: 0}, {t: "second line", w: 0, davw: 0, y: 0}, 
+		 	{t: "x", w: 0, davw: 0, y: 0}, {t: "xu", w: 0, davw: 0, y: 0}
+		 	], 
+		 	fadeIn: 0, fadeOut: false
+		  }
 		 };
 
 		trs.TextBoxShow = showTextBox;
@@ -19,29 +20,37 @@
 		trs.TextBoxGetSelectedText = getSelectedText;
 
 		trs.TextBoxRender = drawTextBox;
-		trs.CreateTimer(1000/30, shHideCaret);
+		trs.CreateTimer(1000/30, shHideCaretAndFade);
 
 		trs.canvas.style.cursor = 'text';
 	}
-	function shHideCaret()
+	function shHideCaretAndFade()
 	{
-		if(!this.TextBox.isOnDisplay)
-			return;
-		// clip
-
-
-		//this.TextBox.activeBox.caretOnDisplay = !this.TextBox.activeBox.caretOnDisplay;
-		this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep;
-		if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay > 1)
+		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
 		{
-			var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
+			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep;
+			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay > 1)
+			{
+				var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
 
-			if(this.TextBox.activeBox.caretOnDisplay < 0)
-				this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod;
-			else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod * -1;
+				if(this.TextBox.activeBox.caretOnDisplay < 0)
+					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod;
+				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod * -1;
 
+			}
+			if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
+			{
+				this.TextBox.activeBox.fadeIn +=0.25;
+			}else
+			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
+			{
+				this.TextBox.activeBox.fadeIn -=0.25;
+			}
+			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
+				this.TextBox.activeBox.fadeOut = false;
+
+			this.update();	
 		}
-		this.update();	
 	}
 	var ignoreCodes = [95,93,125,123,91,160,171,92,8230,187];
 	function interactionInput(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
@@ -64,6 +73,8 @@
 					hitCursorToCaret(this, i, mx);
 					acb.caretSETupDownX = acb.caretPositionX;
 				}
+				if(!this.TextBox.multiline)
+					break;
 			};
 
 		}else if(keyboardDownEvent !== null){
@@ -74,7 +85,7 @@
 
 				if(acb.caretIndex == -1)
 				{
-					if(acb.caretLine > 0)
+					if(acb.caretLine > 0 && this.TextBox.multiline)
 					{
 						var cp  = acb.lines[acb.caretLine - 1].t.length-1;
 						acb.lines[acb.caretLine - 1].t = acb.lines[acb.caretLine - 1].t + str;
@@ -164,7 +175,7 @@
 				setTextParams(this);
 				var dim = this.context.measureText(acb.lines[acb.caretLine].t.substr(0, acb.caretIndex+1));
 				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-			}else if(e.keyCode === 40)// down arrow
+			}else if(e.keyCode === 40 && this.TextBox.multiline)// down arrow
 			{
 				acb.caretLine++;
 				if(acb.caretLine >= acb.lines.length)
@@ -172,7 +183,7 @@
 
 				hitCursorToCaret(this, acb.caretLine, acb.caretSETupDownX);
 
-			}else if(e.keyCode === 38)// up arrow
+			}else if(e.keyCode === 38 && this.TextBox.multiline)// up arrow
 			{
 				acb.caretLine--;
 				if(acb.caretLine < 0)
@@ -192,21 +203,24 @@
 
 			}else if(e.keyCode === 13)// enter
 			{
-				var str = acb.lines[acb.caretLine].t;
-				acb.caretLine++;
-				if(acb.caretLine > acb.lines.length)
-					throw '';
-				if(acb.caretLine === acb.lines.length)
-					acb.lines.push({t: "xu", w: 0, davw: 0, y: 0});
-				else acb.lines.splice(acb.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
+				// todo: accept input changes
+				if(this.TextBox.multiline)
+				{
+					var str = acb.lines[acb.caretLine].t;
+					acb.caretLine++;
+					if(acb.caretLine > acb.lines.length)
+						throw '';
+					if(acb.caretLine === acb.lines.length)
+						acb.lines.push({t: "xu", w: 0, davw: 0, y: 0});
+					else acb.lines.splice(acb.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
 
-				acb.lines[acb.caretLine-1].t = str.substr(0, acb.caretIndex+1);
-				acb.lines[acb.caretLine].t = str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
-				acb.caretIndex = -1;
-				acb.caretPositionY = acb.lines[acb.caretLine-1].y+12;
-				acb.caretSETupDownX = acb.caretPositionX = this.TextBox.x;
-				this.TextBox.activeBox.measured = false;
-
+					acb.lines[acb.caretLine-1].t = str.substr(0, acb.caretIndex+1);
+					acb.lines[acb.caretLine].t = str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
+					acb.caretIndex = -1;
+					acb.caretPositionY = acb.lines[acb.caretLine-1].y+12;
+					acb.caretSETupDownX = acb.caretPositionX = this.TextBox.x;
+					this.TextBox.activeBox.measured = false;
+				}
 			}else{
 				// input
 		        var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
@@ -267,6 +281,11 @@
 					avgindex--;
 					dim = dim2;
 				}
+				if(avgindex >= tl)
+				{	
+					avgindex = tl-1;
+					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+				}
 			}
 
 			acb.caretPositionX = dim.width + trs.TextBox.x;
@@ -280,26 +299,39 @@
 	}
 	function drawTextBox()
 	{
-		this.SetShadow();
-		if(!this.TextBox.activeBox.measured)
-			drawTextBoxText(this, true);
-		drawTextBoxBackground(this);
-		drawTextBoxText(this, false);
+		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+		{
+			this.SetShadow();
+			if(!this.TextBox.activeBox.measured)
+				drawTextBoxText(this, true);
+			drawTextBoxBackground(this);
+			drawTextBoxText(this, false);
+		}
 	}
 	function drawTextBoxBackground(trs)
 	{
-		trs.context.fillStyle = "rgba(255, 255, 255, 0.6)";
 		var acb = trs.TextBox.activeBox;
-		trs.SetShadow(0,0,4,"rgba(255, 255, 255, 0.5)");
+		trs.SetShadow(0,0,4,"rgba(255, 255, 255, "+Math.min(0.5,trs.TextBox.activeBox.fadeIn)+")");
+		
+		//255, 187, 40
+		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
 		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-4, trs.TextBox.width+4, trs.TextBox.height+4);
 		trs.SetShadow();
+		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-(4+12+2), trs.TextBox.width+4, 12+2);
+		
+		trs.context.font = "8pt Verdana";
+		trs.context.fillStyle = "rgba(255, 255, 255, "+trs.TextBox.activeBox.fadeIn+")";
+		trs.context.fillText(trs.TextBox.activeBox.label+":", trs.TextBox.x, trs.TextBox.y-(12+2));
 	}
+
 	function setTextParams(trs)
 	{
+		trs.SetShadow();
 		trs.context.font = "10pt Verdana";
 		trs.context.textBaseline ="top";
 		trs.context.textAlign = 'start';
-		trs.context.fillStyle = "rgb(0, 0, 0)";
+		trs.context.fillStyle = "rgba(0, 0, 0, "+trs.TextBox.activeBox.fadeIn+")";//"rgb(0, 0, 0)";
 	}
 	function drawTextBoxText(trs, measureOnly)
 	{
@@ -319,6 +351,8 @@
 			{		
 				trs.context.fillText(acb.lines[i].t, trs.TextBox.x, acb.lines[i].y);
 			}
+			if(!trs.TextBox.multiline)
+				break;
 		};
 		if(measureOnly)
 		{
@@ -328,7 +362,7 @@
 		// ---
 		// var cop = trs.context.globalCompositeOperation;
 		// trs.context.globalCompositeOperation = "lighter";
-		trs.context.strokeStyle = "rgba(0, 0, 0, "+acb.caretOnDisplay+")";
+		trs.context.strokeStyle = "rgba(0, 0, 0, "+Math.min(acb.caretOnDisplay,acb.fadeIn)+")";
 		trs.context.beginPath();
 		trs.context.lineWidth = 1;
 		trs.context.moveTo(acb.caretPositionX+.5, acb.caretPositionY + -2+1);
@@ -339,17 +373,25 @@
 
 		//trs.TextBox.activeBox.caretOnDisplay
 	}
-	function showTextBox(x, y)
+	function showTextBox(x, y, label, text, ismultiline)
 	{
 		this.TextBox.x = x;
 		this.TextBox.y = y;
 
+		this.TextBox.activeBox.label = label;
+		this.TextBox.activeBox.text = text;
+		this.TextBox.activeBox.lines = [{t: text, w: 0, davw: 0, y: y}];
+		hitCursorToCaret(this, 0, x+1,y+1)
+		this.TextBox.activeBox.fadeIn = 0;
+		this.TextBox.activeBox.measured = false;
 		this.TextBox.isOnDisplay = true;
+
 		this.update();	
 	}
 	function hideTextBox()
 	{
 		this.TextBox.isOnDisplay = false;
+		this.TextBox.activeBox.fadeOut = true;
 		this.update();	
 	}
 	function resizeTextBox(width, height)

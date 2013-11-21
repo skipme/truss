@@ -1,13 +1,13 @@
 (function(){
 	function cMenu(trs){
-		trs.menu = { menuList:[], displayMenuName:'', displayMenu:undefined, displayMenuOrigin:{x:0, y:0}, displayMenuBounds:{mwidth:0, h:0}};
+		trs.menu = { menuList:[], displayMenuName:undefined, displayMenu:undefined, displayMenuOrigin:{x:0, y:0}, displayMenuBounds:{mwidth:0, h:0}};
 		
 
 		trs.RenderMenu = RenderMenu;
 		trs.AddDisplayMenu = AddMenu;
 		trs.ShowMenu = function(name,x,y,monly){ShowMenu(this, name, x, y);};
 		trs.HideMenu = HideMenu;
-		trs.getActiveMenuName = function(){return this.menu.displayMenu;};
+		trs.getActiveMenuName = function(){return this.menu.displayMenuName;};
 		trs.processInteractionMMove = processInteractionMMove;
 		trs.processInteractionMMdown = processInteractionMMdown;
 	}
@@ -20,7 +20,7 @@
 		for (var i = 0; i < menuO.items.length; i++) {
 			 menuO.items[i].selected = false;
 		};
-
+		this.menu.displayMenuName = undefined;
 		this.menu.displayMenu = undefined;
 		this.update();
 	}

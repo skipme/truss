@@ -161,6 +161,14 @@
 	    		if(this.selectedNode == i)
 	    		{
 	    			this.context.fillStyle = "rgba(68, 110, 150, 0.6)";
+	    			//textbox connection
+						this.context.beginPath();
+				    	this.context.moveTo(this.objects[i].x+0.5, this.objects[i].y+0.5);
+						this.context.lineTo(this.TextBox.x, this.TextBox.y);
+				    	this.context.closePath();
+				    	this.context.fill();
+				    	this.context.stroke();
+				    //~
 	    		}else{
 	    			this.context.fillStyle = "rgba(0, 0, 0, 0.2)";
 	    		}
@@ -263,11 +271,9 @@
 		{
 			this.setLayer(menulayer);
 			this.Clear();
+
+			this.TextBoxRender();
 			this.RenderMenu(menulayer, menulayer);
-			if(this.TextBox.isOnDisplay)
-			{
-				this.TextBoxRender();
-			}
 			this.saveLayer();
 		}
 
