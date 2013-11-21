@@ -29,11 +29,17 @@
 			return;
 		// clip
 
+
 		//this.TextBox.activeBox.caretOnDisplay = !this.TextBox.activeBox.caretOnDisplay;
 		this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep;
 		if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay > 1)
 		{
-			this.TextBox.activeBox.caretOnDisplayAlphaIncStep *= -1;
+			var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
+
+			if(this.TextBox.activeBox.caretOnDisplay < 0)
+				this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod;
+			else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod * -1;
+
 		}
 		this.update();	
 	}
