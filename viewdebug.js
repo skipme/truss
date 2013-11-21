@@ -158,18 +158,24 @@
   			this.context.strokeStyle = "#FFFFFF";
 			for (var i = 0; i < this.objects.length; i++) {
 				
-	    		if(this.selectedNode == i)
+	    		if(this.editTextNode === i)
 	    		{
-	    			this.context.fillStyle = "rgba(68, 110, 150, 0.6)";
+	    			this.context.fillStyle = "rgba(255, 187, 40, 0.8)";
+	    			this.context.strokeStyle = "rgb(255, 187, 40)";
 	    			//textbox connection
 						this.context.beginPath();
 				    	this.context.moveTo(this.objects[i].x+0.5, this.objects[i].y+0.5);
-						this.context.lineTo(this.TextBox.x, this.TextBox.y);
+						this.context.lineTo(this.TextBox.x- this.objs_translate.xoffset, this.TextBox.y- this.objs_translate.yoffset);
 				    	this.context.closePath();
 				    	this.context.fill();
 				    	this.context.stroke();
 				    //~
-	    		}else{
+				    this.context.strokeStyle = "#FFFFFF";
+	    		}else if(this.selectedNode === i)
+	    		{
+	    			this.context.fillStyle = "rgba(68, 110, 150, 0.6)";
+	    		}
+	    		else{
 	    			this.context.fillStyle = "rgba(0, 0, 0, 0.2)";
 	    		}
 	    		

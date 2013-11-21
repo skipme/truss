@@ -15,14 +15,20 @@
 
 		trs.TextBoxShow = showTextBox;
 		trs.TextBoxHide = hideTextBox;
-
+		trs.TextBoxTextGet = GetText;
 		trs.TextBoxInteractionInput = interactionInput;
 		trs.TextBoxGetSelectedText = getSelectedText;
 
 		trs.TextBoxRender = drawTextBox;
 		trs.CreateTimer(1000/30, shHideCaretAndFade);
-
-		trs.canvas.style.cursor = 'text';
+	}
+	function GetText()
+	{
+		var result = "";
+		for (var i = 0; i < this.TextBox.activeBox.lines.length; i++) {
+			result += this.TextBox.activeBox.lines[i].t;
+		};
+		return result;
 	}
 	function shHideCaretAndFade()
 	{
@@ -58,11 +64,30 @@
 		if(!this.TextBox.isOnDisplay)
 			return;
 		var acb = this.TextBox.activeBox;
-		if(mouseUp !== null && mouseUp.which === 1)
+		if(mouseMove !== null)
+		{
+			var e = mouseMove;
+			var mx = this.runtime.mx;
+			var my = this.runtime.my;
+			var hit = false;
+			for (var i = 0; i < acb.lines.length; i++) {
+				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
+				{ 
+					hit = true;
+					break;
+				}
+				if(!this.TextBox.multiline)
+					break;
+			};
+			if(hit)
+			{
+				this.setCursor("text")
+			}
+		}else if(mouseUp !== null && mouseUp.which === 1)
 		{
 			var e = mouseUp;
-			var mx = e.pageX-this.bounds.left;
-			var my = e.pageY-this.bounds.top;
+			var mx = this.runtime.mx;
+			var my = this.runtime.my;
 			// set caret position
 			// assume drag over point
 
@@ -201,7 +226,12 @@
 					this.TextBox.activeBox.measured = false;
 				}
 
-			}else if(e.keyCode === 13)// enter
+			}else if(e.keyCode == 27)
+			{
+				if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
+					acb.acceptedOrDeclined.call(this, "ESCAPE");
+			}
+			else if(e.keyCode === 13)// enter
 			{
 				// todo: accept input changes
 				if(this.TextBox.multiline)
@@ -220,6 +250,9 @@
 					acb.caretPositionY = acb.lines[acb.caretLine-1].y+12;
 					acb.caretSETupDownX = acb.caretPositionX = this.TextBox.x;
 					this.TextBox.activeBox.measured = false;
+				}else{
+					if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
+						acb.acceptedOrDeclined.call(this, "OK");
 				}
 			}else{
 				// input
@@ -242,7 +275,7 @@
 				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
 				this.TextBox.activeBox.measured = false;
 				acb.caretIndex++;
-				console.log(keychar)
+				// console.log(keychar)
 			}
 		}
 	}
@@ -373,11 +406,16 @@
 
 		//trs.TextBox.activeBox.caretOnDisplay
 	}
-	function showTextBox(x, y, label, text, ismultiline)
+	function showTextBox(x, y, label, text, ismultiline, acceptedOrDeclined)
 	{
+		if(x === "right")
+		{
+			x = this.bounds.width - this.TextBox.width - 4; 
+		}
 		this.TextBox.x = x;
 		this.TextBox.y = y;
 
+		this.TextBox.activeBox.acceptedOrDeclined = acceptedOrDeclined;
 		this.TextBox.activeBox.label = label;
 		this.TextBox.activeBox.text = text;
 		this.TextBox.activeBox.lines = [{t: text, w: 0, davw: 0, y: y}];

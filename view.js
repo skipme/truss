@@ -22,11 +22,26 @@
         trs.SetShadow = Shadow;
         trs.drawArrow = drawArrow;
 
+        trs.cursorStyle = "reset";
+        trs.lastCursorSet = "default";
+        trs.setCursor = setCursor;
+        trs.acceptSetCursor = acceptSetCursor;
+
         trs.addEventCallback("NodeAdded", NodeAdded);
         trs.addEventCallback("NodesSeparated", NodesSeparated);
         trs.addEventCallback("NodeRemoved", NodeRemoved);
         trs.addEventCallback("Render", Render);
         trs.addEventCallback("update", update);
+    }
+    function setCursor(style){
+        if(this.cursorStyle !== style)
+            this.cursorStyle = style;
+    }
+    function acceptSetCursor(up){
+        if(up)
+            this.cursorStyle = "reset";
+        else if(this.cursorStyle!=="reset" && this.lastCursorSet != this.cursorStyle)
+            this.canvas.style.cursor = this.lastCursorSet = this.cursorStyle;
     }
     function updateBounds(trs) {
         trs.bounds = {

@@ -4,6 +4,7 @@
 	function cStructure(trs){
 		trs.mouseDragContext = {startX:0,startY:0};
 		trs.selectedNode = -1;
+		trs.editTextNode = -1;
 		trs.Dragging = false;
 		trs.FieldDragging = false;
 		trs.FieldDraggingPos = {startX:0, startY:0, prevX:0, prevY:0};
@@ -92,17 +93,57 @@
 	{
 
 	}
+	function showTextBoxForSelectedNode(trs)
+	{
+		trs.editTextNode = trs.selectedNode;
+		var txt = trs.objects[trs.editTextNode].label;
+		txt = txt||"";
+		trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
+		trs.PushEvent("nodeEditStart", trs.editTextNode);
+	}
 	function dkeypress(e)
 	{
-		this.TextBoxInteractionInput(e,null,null,null,null);
+		if(this.editTextNode === -1
+			&& e.keyCode === 13 && this.selectedNode >= 0)// enter pressed on selected node
+		{
+			showTextBoxForSelectedNode(this);
+		}else{
+			this.TextBoxInteractionInput(e,null,null,null,null);
+		}
 		e.preventDefault();
 	}
 	function dblclick(e)
 	{
-		if(this.TextBox.isOnDisplay)
+		if(this.editTextNode>=0)
+			return;
+		this.updateBounds();
+
+		var mx = e.pageX-this.bounds.left;
+		var my = e.pageY-this.bounds.top;
+
+		for (var i = 0; i < this.objects.length; i++) {
+			if(hittest(this.objects[i].x + this.objs_translate.xoffset,this.objects[i].y + this.objs_translate.yoffset, this.options.view.node.radius, mx, my))
+			{
+				this.editTextNode = this.nodeSelected = i;
+				break;
+			}
+		}
+		if(this.editTextNode>=0)
+			showTextBoxForSelectedNode(this)
+	}
+	function editAccepted(result)
+	{
+		if(result === "OK")
+		{
+			this.objects[this.editTextNode].label = this.TextBoxTextGet();
+			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label]);
 			this.TextBoxHide();
-		else
-			this.TextBoxShow(250, 250, "left Caption", "Мама мыла раму");
+			this.editTextNode = -1;
+		}else{
+			this.PushEvent("nodeEditDecline", this.editTextNode);
+			this.TextBoxHide();
+			this.editTextNode = -1;
+		}
 	}
 	function mdown(e)
 	{
@@ -121,29 +162,33 @@
 			var selectedN=-1;
 			var mx = e.pageX-this.bounds.left;
 			var my = e.pageY-this.bounds.top;
+
+			this.runtime.mx = mx;
+			this.runtime.my = my;
+
 			if(this.menu.displayMenu)
 			{
 				if(this.processInteractionMMdown(e.which, mx, my))
 					return;
 			}
 			var sameSelected = false;
-
-			for (var i = 0; i < this.objects.length; i++) {
-				if(hittest(this.objects[i].x + this.objs_translate.xoffset,this.objects[i].y + this.objs_translate.yoffset, this.options.view.node.radius, mx, my))
-				{
-					if(this.selectedNode === i)
+			if(this.editTextNode===-1)
+				for (var i = 0; i < this.objects.length; i++) {
+					if(hittest(this.objects[i].x + this.objs_translate.xoffset,this.objects[i].y + this.objs_translate.yoffset, this.options.view.node.radius, mx, my))
 					{
-						sameSelected = true;
-						continue;
+						if(this.selectedNode === i)
+						{
+							sameSelected = true;
+							continue;
+						}
+						sameSelected = false;
+						
+						this.PushEvent("nodeSelected", i);
+						selectedN = i;
+						break;
 					}
-					sameSelected = false;
-					
-					this.PushEvent("nodeSelected", i);
-					selectedN = i;
-					break;
 				}
-			}
-			if(selectedN < 0 && !sameSelected)
+			if(selectedN < 0 && !sameSelected && this.editTextNode===-1)
 			{
 				this.invokeEvent('nodeFocusLost', [this.selectedNode, -1, this.objects[this.selectedNode]]);
 				this.selectedNode = -1
@@ -152,7 +197,7 @@
 			if(e.which == 1)
 			{
 				this.HideMenu();
-				if(this.selectedNode >= 0)
+				if(this.selectedNode >= 0 && this.editTextNode===-1)
 				{
 					this.Dragging = true;
 					//console.log("dragging on");
@@ -172,8 +217,8 @@
 					this.objects[this.selectedNode].prevy = this.objects[this.selectedNode].y;
 				}
 			
-				this.FieldDragging = selectedN == -1;
-				if(this.FieldDragging)
+				this.FieldDragging = (selectedN == -1) && this.editTextNode===-1;
+				if(this.FieldDragging )
 				{
 					this.FieldDraggingPos.startX = mx;
 					this.FieldDraggingPos.startY = my;
@@ -181,7 +226,7 @@
 					this.FieldDraggingPos.prevY = this.objs_translate.yoffset;
 				}
 
-			} else {
+			} else if(this.editTextNode===-1) {
 				if(this.selectedNode >= 0)
 				{
 					this.ShowMenu("node", mx, my);
@@ -199,8 +244,12 @@
 	}
 	function mup(e)
 	{
-		this.TextBoxInteractionInput(null,null,
-			null,e,null);
+		var mx = e.pageX-this.bounds.left;
+		var my = e.pageY-this.bounds.top;
+
+		this.runtime.mx = mx;
+		this.runtime.my = my;
+
 		if(e.which == 1)
 		{
 			if(this.FieldDragging)
@@ -214,10 +263,14 @@
 				//console.log("dragging off", e);
 			}
 		}
+		this.TextBoxInteractionInput(null,null,
+			null,e,null);
 		e.preventDefault();
 	}
 	function mmove(e)
 	{
+		this.acceptSetCursor(true);// assume only mouse move event can change cursor style
+		this.setCursor("default")
 		var mx = e.pageX-this.bounds.left;
 		var my = e.pageY-this.bounds.top;
 		
@@ -249,6 +302,9 @@
 				this.update();
 		}
 		this.processInteractionMMove(mx, my);
+		this.TextBoxInteractionInput(null,null,
+			null,null,e);
+		this.acceptSetCursor(false);// assume only mouse move event can change cursor style
 		e.preventDefault()
 	}
 
