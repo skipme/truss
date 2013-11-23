@@ -123,7 +123,7 @@
             this.context.shadowOffsetX = 0;
             this.context.shadowOffsetY = 0;
             this.context.shadowBlur = 0;
-            this.context.shadowColor = 0;
+            //this.context.shadowColor = 0;
         } else {
             this.context.shadowOffsetX = offsetX;
             this.context.shadowOffsetY = offsetY;

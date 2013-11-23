@@ -1,6 +1,6 @@
 (function(){
 		function vButton(trs){
-			trs.buttons = {
+			trs.Button = {
 				buttons: [
 				{
 					x:0, y: 0, w: 0, h: 0, 
@@ -37,14 +37,14 @@
 		}
 		function addButton(name, caption, font, fontheight, callback)
 		{
-			this.buttons.buttonNames[name] = this.buttons.buttons.length;
+			this.Button.buttonNames[name] = this.Button.buttons.length;
 			var button = {
 					x:0, y: 0, w: 0, h: 0, 
 					visible: 1, interaction: interaction, focus: 0, 
 					render: renderButton,
 					caption: caption, font: font, fontheight: fontheight, callback: callback
 			};
-			this.buttons.buttons.push(button);
+			this.Button.buttons.push(button);
 			return button;
 		}
 		truss_o.extendModule(vButton, "view.Button", ["view.Interface", "core.runtime"]);

@@ -34,6 +34,9 @@
 				{x:-22, y: 2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addButton(trs, "test2", "\uf25b", null, "24px Ionicons", 22,
 				{x:-22, y: 2+26 +2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
+			pp.addTextBox(trs, "label", "text", false, null, 
+				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'})
+			trs.EditPanel = pp;
 		//
 		trs.DeltasMeasuring = [];
 
@@ -118,7 +121,8 @@
 		{
 			showTextBoxForSelectedNode(this);
 		}else{
-			this.TextBoxInteractionInput(e,null,null,null,null);
+			this.ProxyPanelInteractionEntry(e,null,null,null,null);
+			//this.TextBoxInteractionInput(e,null,null,null,null);
 		}
 		e.preventDefault();
 	}
@@ -127,7 +131,7 @@
 		if(this.editTextNode === -1
 			&& e.keyCode === 13 && this.selectedNode >= 0)// enter pressed on selected node
 		{
-			showTextBoxForSelectedNode(this);
+			//showTextBoxForSelectedNode(this);
 			e.preventDefault();
 		}else
 		if(e.keyCode === 13 || e.keyCode === 8
@@ -135,7 +139,8 @@
 			|| e.keyCode === 40|| e.keyCode === 38
 			|| e.keyCode === 46|| e.keyCode === 27)
 		{
-			this.TextBoxInteractionInput(e,null,null,null,null);
+			//this.TextBoxInteractionInput(e,null,null,null,null);
+			this.ProxyPanelInteractionEntry(e,null,null,null,null);
 			e.preventDefault();
 		}
 	}
@@ -290,8 +295,9 @@
 				//console.log("dragging off", e);
 			}
 		}
-		this.TextBoxInteractionInput(null,null,
-			null,e,null);
+		// this.TextBoxInteractionInput(null,null,
+		// 	null,e,null);
+		this.ProxyPanelInteractionEntry(null,null,null,e,null);
 		e.preventDefault();
 	}
 	function mmove(e)
@@ -329,8 +335,9 @@
 				this.update();
 		}
 		this.processInteractionMMove(mx, my);
-		this.TextBoxInteractionInput(null,null,
-			null,null,e);
+		// this.TextBoxInteractionInput(null,null,
+		// 	null,null,e);
+		this.ProxyPanelInteractionEntry(null,null, null,null,e);
 		this.acceptSetCursor(false);// assume only mouse move event can change cursor style
 		e.preventDefault()
 	}

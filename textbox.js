@@ -10,21 +10,48 @@
 		 	[{t: "first line", w: 0, davw: 0, y: 0}, {t: "second line", w: 0, davw: 0, y: 0}, 
 		 	{t: "x", w: 0, davw: 0, y: 0}, {t: "xu", w: 0, davw: 0, y: 0}
 		 	], 
-		 	fadeIn: 0, fadeOut: false
-		  }
-		  // textboxes: [
-		  // ]
-		 };
+		 	fadeIn: 1, fadeOut: false
+		  },
+		  textboxes: [
+		  ]
+		};
 
+		trs.AddTextBox = AddTextBox;
 		trs.TextBoxShow = showTextBox;
 		trs.TextBoxHide = hideTextBox;
 		trs.TextBoxTextGet = GetText;
 		trs.TextBoxInteractionInput = interactionInput;
 		trs.TextBoxGetSelectedText = getSelectedText;
 
-		trs.TextBoxRender = drawTextBox;
+		// trs.TextBoxRender = drawTextBox;
 		trs.CreateTimer(1000/30, shHideCaretAndFade);
 	}
+	function renderTextBox(trs)
+	{
+		trs.SetShadow();
+		if(!this.measured)
+			drawTextBoxText(trs, this, true);
+		drawTextBoxBackground(trs, this);
+		drawTextBoxText(trs, this, false);
+	}
+	function AddTextBox(label, text, ismultiline, acceptedOrDeclined)
+	{
+		var textbox = {
+				x:0, y: 0, w: 0, h: 0, 
+				visible: 1, interaction: interactionInput, focus: 0, 
+				render: renderTextBox,
+				// caption: caption, font: font, fontheight: fontheight, callback: callback,
+				
+				caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
+		 		state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: -1,
+		 		label: label, 
+		 		text: "first line", lines: [{t: text, w: 0, davw: 0, y: 0}]
+			};
+		// hitCursorToCaret(this, textbox, 0, 0, 0);
+		this.TextBox.textboxes.push(textbox);
+		return textbox;
+	}
+				
 	function GetText()
 	{
 		var result = "";
@@ -35,10 +62,10 @@
 	}
 	function shHideCaretAndFade()
 	{
-		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+		// if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
 		{
 			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep;
-			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay > 1)
+			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay >= 1)
 			{
 				var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
 
@@ -47,61 +74,61 @@
 				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod * -1;
 
 			}
-			if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
-			{
-				this.TextBox.activeBox.fadeIn +=0.25;
-			}else
-			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
-			{
-				this.TextBox.activeBox.fadeIn -=0.25;
-			}
-			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
-				this.TextBox.activeBox.fadeOut = false;
+			// if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
+			// {
+			// 	this.TextBox.activeBox.fadeIn +=0.25;
+			// }else
+			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
+			// {
+			// 	this.TextBox.activeBox.fadeIn -=0.25;
+			// }
+			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
+			// 	this.TextBox.activeBox.fadeOut = false;
 
 			this.update();	
 		}
 	}
 	var ignoreCodes = [95,93,125,123,91,160,171,92,8230,187];
-	function interactionInput(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
+	function interactionInput(trs,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 	{
-		if(!this.TextBox.isOnDisplay)
-			return;
-		var acb = this.TextBox.activeBox;
+		// if(!this.TextBox.isOnDisplay)
+		// 	return;
+		//var acb = this.TextBox.activeBox;
 		if(mouseMove !== null)
 		{
 			var e = mouseMove;
-			var mx = this.runtime.mx;
-			var my = this.runtime.my;
+			var mx = trs.runtime.mx;
+			var my = trs.runtime.my;
 			var hit = false;
-			for (var i = 0; i < acb.lines.length; i++) {
-				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
+			for (var i = 0; i < this.lines.length; i++) {
+				if(hittestrect(this.x-4, this.lines[i].y, this.w, 12, mx, my))
 				{ 
 					hit = true;
 					break;
 				}
-				if(!this.TextBox.multiline)
+				if(!this.multiline)
 					break;
 			};
 			if(hit)
 			{
-				this.setCursor("text")
+				trs.setCursor("text")
 			}
 		}else if(mouseUp !== null && mouseUp.which === 1)
 		{
 			var e = mouseUp;
-			var mx = this.runtime.mx;
-			var my = this.runtime.my;
+			var mx = trs.runtime.mx;
+			var my = trs.runtime.my;
 			// set caret position
 			// assume drag over point
 
-			setTextParams(this)
-			for (var i = 0; i < acb.lines.length; i++) {
-				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
+			setTextParams(trs)
+			for (var i = 0; i < this.lines.length; i++) {
+				if(hittestrect(this.x-4, this.lines[i].y, this.w, 12, mx, my))
 				{ 
-					hitCursorToCaret(this, i, mx);
-					acb.caretSETupDownX = acb.caretPositionX;
+					hitCursorToCaret(trs, this, i, mx);
+					this.caretSETupDownX = this.caretPositionX;
 				}
-				if(!this.TextBox.multiline)
+				if(!this.multiline)
 					break;
 			};
 
@@ -109,43 +136,43 @@
 			var e = keyboardDownEvent;
 			if(e.keyCode === 8)// backspace
 			{ 
-				var str = acb.lines[acb.caretLine].t;
+				var str = this.lines[this.caretLine].t;
 
-				if(acb.caretIndex == -1)
+				if(this.caretIndex == -1)
 				{
-					if(acb.caretLine > 0 && this.TextBox.multiline)
+					if(this.caretLine > 0 && this.multiline)
 					{
-						var cp  = acb.lines[acb.caretLine - 1].t.length-1;
-						acb.lines[acb.caretLine - 1].t = acb.lines[acb.caretLine - 1].t + str;
-						acb.caretLine--; 
-						acb.caretPositionY = acb.lines[acb.caretLine].y;
-						acb.caretSETupDownX = acb.caretPositionX = acb.lines[acb.caretLine].w + this.TextBox.x;	
-						acb.caretIndex=cp;
-						this.TextBox.activeBox.measured = false;
-						acb.lines.splice(acb.caretLine+1, 1);
+						var cp  = this.lines[this.caretLine - 1].t.length-1;
+						this.lines[this.caretLine - 1].t = this.lines[this.caretLine - 1].t + str;
+						this.caretLine--; 
+						this.caretPositionY = this.lines[this.caretLine].y;
+						this.caretSETupDownX = this.caretPositionX = this.lines[this.caretLine].w;	
+						this.caretIndex=cp;
+						this.measured = false;
+						this.lines.splice(this.caretLine+1, 1);
 					}
 				}else{
-					var newleft = str.substr(0, acb.caretIndex);
-					setTextParams(this)
-					var dim = this.context.measureText(newleft);
-					acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+1, str.length - acb.caretIndex-1);
-					acb.caretIndex--;
-					acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-					this.TextBox.activeBox.measured = false;
+					var newleft = str.substr(0, this.caretIndex);
+					setTextParams(trs)
+					var dim = trs.context.measureText(newleft);
+					this.lines[this.caretLine].t =  newleft + str.substr(this.caretIndex+1, str.length - this.caretIndex-1);
+					this.caretIndex--;
+					this.caretSETupDownX = this.caretPositionX = dim.width;
+					this.measured = false;
 				}
 			}else if(e.keyCode === 37)// left arrow
 			{
 				if(e.ctrlKey)
 				{
 					var letterscoped = false;
-					var ctrace = acb.caretIndex;
+					var ctrace = this.caretIndex;
 					while(ctrace >= 0)
 					{
-						var chc = acb.lines[acb.caretLine].t.charCodeAt(ctrace);
+						var chc = this.lines[this.caretLine].t.charCodeAt(ctrace);
        					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
        					{
        						if(letterscoped){
-	       						acb.caretIndex = ctrace; 
+	       						this.caretIndex = ctrace; 
 	       						break;
 	       					}
        					}else{
@@ -155,26 +182,26 @@
 						ctrace--;
 					}
 					if(ctrace === -1 && letterscoped)
-						acb.caretIndex = -1;
+						this.caretIndex = -1;
 				}else{
-					acb.caretIndex--;
+					this.caretIndex--;
 				}
-				if(acb.caretIndex < -1)//clip
-					acb.caretIndex = -1;
-				setTextParams(this);
-				var dim = this.context.measureText(acb.lines[acb.caretLine].t.substr(0, acb.caretIndex+1));
-				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
+				if(this.caretIndex < -1)//clip
+					this.caretIndex = -1;
+				setTextParams(trs);
+				var dim = trs.context.measureText(this.lines[this.caretLine].t.substr(0, this.caretIndex+1));
+				this.caretSETupDownX = this.caretPositionX = dim.width;
 			}else if(e.keyCode === 39)// right arrow
 			{
 				if(e.ctrlKey)
 				{
 					var letterscoped = false;
 					var nextword = false;
-					var ctrace = acb.caretIndex;
-					var tl = acb.lines[acb.caretLine].t.length;
+					var ctrace = this.caretIndex;
+					var tl = this.lines[this.caretLine].t.length;
 					while(ctrace < tl)
 					{
-						var chc = acb.lines[acb.caretLine].t.charCodeAt(ctrace);
+						var chc = this.lines[this.caretLine].t.charCodeAt(ctrace);
        					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
        					{
        						if(letterscoped)
@@ -185,117 +212,117 @@
        							letterscoped = true;
        						else if(nextword)
        						{
-	       						acb.caretIndex = ctrace-1; 
+	       						this.caretIndex = ctrace-1; 
 	       						break;
        						}
        					}
 						ctrace++;
 					}
 					if(ctrace === tl && letterscoped)
-						acb.caretIndex = tl - 1;
+						this.caretIndex = tl - 1;
 				}else{
-					acb.caretIndex++;
+					this.caretIndex++;
 				}
 
-				if(acb.caretIndex > acb.lines[acb.caretLine].t.length)//clip
-					acb.caretIndex = acb.lines[acb.caretLine].t.length - 1;
-				setTextParams(this);
-				var dim = this.context.measureText(acb.lines[acb.caretLine].t.substr(0, acb.caretIndex+1));
-				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
+				if(this.caretIndex > this.lines[this.caretLine].t.length)//clip
+					this.caretIndex = this.lines[this.caretLine].t.length - 1;
+				setTextParams(trs);
+				var dim = trs.context.measureText(this.lines[this.caretLine].t.substr(0, this.caretIndex+1));
+				this.caretSETupDownX = this.caretPositionX = dim.width;
 			}else if(e.keyCode === 40 && this.TextBox.multiline)// down arrow
 			{
-				acb.caretLine++;
-				if(acb.caretLine >= acb.lines.length)
-					acb.caretLine = acb.lines.length - 1;
+				this.caretLine++;
+				if(this.caretLine >= this.lines.length)
+					this.caretLine = this.lines.length - 1;
 
-				hitCursorToCaret(this, acb.caretLine, acb.caretSETupDownX);
+				hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
 
 			}else if(e.keyCode === 38 && this.TextBox.multiline)// up arrow
 			{
-				acb.caretLine--;
-				if(acb.caretLine < 0)
-					acb.caretLine = 0;
-				hitCursorToCaret(this, acb.caretLine, acb.caretSETupDownX);
+				this.caretLine--;
+				if(this.caretLine < 0)
+					this.caretLine = 0;
+				hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
 
 			}else if(e.keyCode === 46)// del/delete
 			{
-				var str = acb.lines[acb.caretLine].t;
-				if(str.length >= acb.caretIndex+2)
+				var str = this.lines[this.caretLine].t;
+				if(str.length >= this.caretIndex+2)
 				{
-					var newleft = str.substr(0, acb.caretIndex+1);
+					var newleft = str.substr(0, this.caretIndex+1);
 
-					acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+2, str.length - acb.caretIndex-1);
-					this.TextBox.activeBox.measured = false;
+					this.lines[this.caretLine].t =  newleft + str.substr(this.caretIndex+2, str.length - this.caretIndex-1);
+					this.measured = false;
 				}
 
 			}else if(e.keyCode == 27)
 			{
-				if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
-					acb.acceptedOrDeclined.call(this, "ESCAPE");
+				if(typeof this.acceptedOrDeclined !== "undefined" && trs.isFunction(this.acceptedOrDeclined))
+					this.acceptedOrDeclined.call(trs, "ESCAPE");
 			}
 			else if(e.keyCode === 13)// enter
 			{
 				// todo: accept input changes
-				if(this.TextBox.multiline)
+				if(this.multiline)
 				{
-					var str = acb.lines[acb.caretLine].t;
-					acb.caretLine++;
-					if(acb.caretLine > acb.lines.length)
+					var str = this.lines[this.caretLine].t;
+					this.caretLine++;
+					if(this.caretLine > this.lines.length)
 						throw '';
-					if(acb.caretLine === acb.lines.length)
-						acb.lines.push({t: "xu", w: 0, davw: 0, y: 0});
-					else acb.lines.splice(acb.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
+					if(this.caretLine === this.lines.length)
+						this.lines.push({t: "xu", w: 0, davw: 0, y: 0});
+					else this.lines.splice(this.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
 
-					acb.lines[acb.caretLine-1].t = str.substr(0, acb.caretIndex+1);
-					acb.lines[acb.caretLine].t = str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
-					acb.caretIndex = -1;
-					acb.caretPositionY = acb.lines[acb.caretLine-1].y+12;
-					acb.caretSETupDownX = acb.caretPositionX = this.TextBox.x;
-					this.TextBox.activeBox.measured = false;
+					this.lines[this.caretLine-1].t = str.substr(0, this.caretIndex+1);
+					this.lines[this.caretLine].t = str.substr(this.caretIndex+1, str.length-this.caretIndex-1);
+					this.caretIndex = -1;
+					this.caretPositionY = this.lines[this.caretLine-1].y+12;
+					this.caretSETupDownX = this.caretPositionX = 0;
+					this.measured = false;
 				}else{
-					if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
-						acb.acceptedOrDeclined.call(this, "OK");
+					if(typeof this.acceptedOrDeclined !== "undefined" && trs.isFunction(this.acceptedOrDeclined))
+						this.acceptedOrDeclined.call(trs, "OK");
 				}
 			}else{
 				// input
 		        var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
 	      		var keychar = String.fromCharCode(key);
 
-	      		var str = acb.lines[acb.caretLine].t;
-	      		setTextParams(this)
+	      		var str = this.lines[this.caretLine].t;
+	      		setTextParams(trs)
 	      		var dim = null;
-	      		if(acb.caretIndex>=0)
+	      		if(this.caretIndex>=0)
 	      		{
-		      		var left = str.substr(0, acb.caretIndex+1);
-					acb.lines[acb.caretLine].t = left+keychar+str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
-					dim = this.context.measureText(left+keychar);
+		      		var left = str.substr(0, this.caretIndex+1);
+					this.lines[this.caretLine].t = left+keychar+str.substr(this.caretIndex+1, str.length-this.caretIndex-1);
+					dim = trs.context.measureText(left+keychar);
 				}else{
-					acb.lines[acb.caretLine].t = keychar+str;
-					dim = this.context.measureText(keychar);
+					this.lines[this.caretLine].t = keychar+str;
+					dim = trs.context.measureText(keychar);
 				}
 
-				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-				this.TextBox.activeBox.measured = false;
-				acb.caretIndex++;
+				this.caretSETupDownX = this.caretPositionX = dim.width;
+				this.measured = false;
+				this.caretIndex++;
 				// console.log(keychar)
 			}
 		}
 	}
-	function hitCursorToCaret(trs, lineIndex, x)
+	function hitCursorToCaret(trs, textbox, lineIndex, x)
 	{
-		var acb = trs.TextBox.activeBox;
+		// var acb = trs.TextBox.activeBox;
 
 		var avgindex = -1;
-		if(acb.lines[lineIndex].t.length > 0)
+		if(textbox.lines[lineIndex].t.length > 0)
 		{
-			avgindex = Math.floor((x-trs.TextBox.x) / acb.lines[lineIndex].davw)-1;
+			avgindex = Math.floor((x-textbox.x) / textbox.lines[lineIndex].davw)-1;
 			if(avgindex < -1)
 				avgindex = -1;
 			
 			setTextParams(trs);
 			
-			var tl = acb.lines[lineIndex].t.length;
-			var dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+			var tl = textbox.lines[lineIndex].t.length;
+			var dim = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex+1));
 
 			if(avgindex >= tl)
 			{	
@@ -303,14 +330,14 @@
 
 			}else{
 
-				while((dim.width + trs.TextBox.x < x) && avgindex >= 0 && avgindex < tl)
+				while((dim.width + textbox.x < x) && avgindex >= 0 && avgindex < tl)
 				{
 					avgindex ++;
-					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+					dim = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex+1));
 				}
-				var delta1 = dim.width + trs.TextBox.x - x;
-				var dim2 = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex));
-				//var delta2 = Math.abs(dim.width + trs.TextBox.x - x);
+				var delta1 = dim.width + textbox.x - x;
+				var dim2 = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex));
+				//var delta2 = Math.abs(dim.width + textbox.x - x);
 				if(delta1 > 3)
 				{	
 					avgindex--;
@@ -319,45 +346,45 @@
 				if(avgindex >= tl)
 				{	
 					avgindex = tl-1;
-					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+					dim = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex+1));
 				}
 			}
 
-			acb.caretPositionX = dim.width + trs.TextBox.x;
+			textbox.caretPositionX = dim.width;
 		}else
 		{
-			acb.caretPositionX = trs.TextBox.x;
+			textbox.caretPositionX = 0;
 		}
-		acb.caretPositionY = acb.lines[lineIndex].y;
-		acb.caretIndex = avgindex;
-		acb.caretLine = lineIndex;
+		textbox.caretPositionY = 0;
+		textbox.caretIndex = avgindex;
+		textbox.caretLine = lineIndex;
 	}
-	function drawTextBox()
-	{
-		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
-		{
-			this.SetShadow();
-			if(!this.TextBox.activeBox.measured)
-				drawTextBoxText(this, true);
-			drawTextBoxBackground(this);
-			drawTextBoxText(this, false);
-		}
-	}
-	function drawTextBoxBackground(trs)
+	// function drawTextBox()
+	// {
+	// 	if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+	// 	{
+	// 		this.SetShadow();
+	// 		if(!this.TextBox.activeBox.measured)
+	// 			drawTextBoxText(this, true);
+	// 		drawTextBoxBackground(this);
+	// 		drawTextBoxText(this, false);
+	// 	}
+	// }
+	function drawTextBoxBackground(trs, textbox)
 	{
 		var acb = trs.TextBox.activeBox;
-		trs.SetShadow(0,0,4,"rgba(255, 255, 255, "+Math.min(0.5,trs.TextBox.activeBox.fadeIn)+")");
+		trs.SetShadow(0,0,4,"rgba(255, 255, 255, "+Math.min(0.5,acb.fadeIn)+")");
 		
 		//255, 187, 40
-		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
-		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-4, trs.TextBox.width+4, trs.TextBox.height+4);
+		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.8,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillRect(textbox.x-4, textbox.y-4, textbox.w+4, textbox.h+4);
 		trs.SetShadow();
-		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
-		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-(4+12+2), trs.TextBox.width+4, 12+2);
+		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.8,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillRect(textbox.x-4, textbox.y-(4+12+2), textbox.w+4, 12+2);
 		
 		trs.context.font = "10px Verdana";
-		trs.context.fillStyle = "rgba(255, 255, 255, "+trs.TextBox.activeBox.fadeIn+")";
-		trs.context.fillText(trs.TextBox.activeBox.label+":", trs.TextBox.x, trs.TextBox.y-2-2);
+		trs.context.fillStyle = "rgba(255, 255, 255, "+acb.fadeIn+")";
+		trs.context.fillText(textbox.label+":", textbox.x, textbox.y-2-2);
 	}
 
 	function setTextParams(trs)
@@ -368,45 +395,39 @@
 		trs.context.textAlign = 'start';
 		trs.context.fillStyle = "rgba(0, 0, 0, "+trs.TextBox.activeBox.fadeIn+")";//"rgb(0, 0, 0)";
 	}
-	function drawTextBoxText(trs, measureOnly)
+	function drawTextBoxText(trs, textbox, measureOnly)
 	{
 		setTextParams(trs)
 		// ---
-
-		var acb = trs.TextBox.activeBox;
-		for (var i = 0; i < acb.lines.length; i++) {
+		for (var i = 0; i < textbox.lines.length; i++) {
 			if(measureOnly)
 			{
-				var dim = trs.context.measureText(acb.lines[i].t);
-				acb.lines[i].w = dim.width;
-				acb.lines[i].davw = dim.width / acb.lines[i].t.length;
-				acb.lines[i].y = trs.TextBox.y + (i*12);
+				var dim = trs.context.measureText(textbox.lines[i].t);
+				textbox.lines[i].w = dim.width;
+				textbox.lines[i].davw = dim.width / textbox.lines[i].t.length;
+				textbox.lines[i].y = textbox.y + (i*12);
 			}
 			else
 			{		
-				trs.context.fillText(acb.lines[i].t, trs.TextBox.x, acb.lines[i].y+12);
+				trs.context.fillText(textbox.lines[i].t, textbox.x, textbox.lines[i].y+12);
 			}
-			if(!trs.TextBox.multiline)
+			if(!textbox.multiline)
 				break;
 		};
 		if(measureOnly)
 		{
-			trs.TextBox.activeBox.measured = true;
+			textbox.measured = true;
 			return;
 		}
 		// ---
-		// var cop = trs.context.globalCompositeOperation;
-		// trs.context.globalCompositeOperation = "lighter";
-		trs.context.strokeStyle = "rgba(0, 0, 0, "+Math.min(acb.caretOnDisplay,acb.fadeIn)+")";
+
+		trs.context.strokeStyle = "rgba(0, 0, 0, "+Math.min(trs.TextBox.activeBox.caretOnDisplay, trs.TextBox.activeBox.fadeIn)+")";
 		trs.context.beginPath();
 		trs.context.lineWidth = 1;
-		trs.context.moveTo(acb.caretPositionX+.5, acb.caretPositionY + -2+1);
-		trs.context.lineTo(acb.caretPositionX +.5, acb.caretPositionY + 2+10);
+		trs.context.moveTo(textbox.caretPositionX + textbox.x +.5, textbox.lines[textbox.caretLine].y + -2+1);
+		trs.context.lineTo(textbox.caretPositionX + textbox.x +.5, textbox.lines[textbox.caretLine].y + 2+10);
 		trs.context.closePath();
     	trs.context.stroke();
-    	// trs.context.globalCompositeOperation = cop;
-
-		//trs.TextBox.activeBox.caretOnDisplay
 	}
 	function showTextBox(x, y, label, text, ismultiline, acceptedOrDeclined)
 	{

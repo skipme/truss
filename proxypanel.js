@@ -5,15 +5,30 @@
 				bindings: [
 					{refName: 'i', relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, proxy: {}}
 				],
-				addTextBox: addTextBox, addButton: addButton
+				addTextBox: addTextBox, addButton: addButton,
 				},
 			};
 			trs.RenderProxyPanels = RenderProxyPanels;
 			trs.showProxyPanel = showProxyPanel;
+			trs.ProxyPanelInteractionEntry = interactionEntry;
 		}
-		function addTextBox(trs)
+		function interactionEntry(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 		{
+			var panel = this.proxyPanel.activepanel;
 
+			for (var i = 0; i < panel.bindings.length; i++) {
+				var proxy = panel.bindings[i].proxy;
+				if(typeof proxy.interaction !== "undefined" && this.isFunction(proxy.interaction))
+					proxy.interaction(this,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove);
+			}		
+		}
+		function addTextBox(trs, label, text, ismultiline, acceptedOrDeclined, relativity)
+		{
+			var textbox = trs.AddTextBox(label, text, ismultiline, acceptedOrDeclined);
+			var incapsulated = {refName: name, relative: relativity, proxy: textbox};
+			this.bindings.push(incapsulated);
+			updateRelativitys(trs, this);
+			return incapsulated;
 		}
 		function addButton(trs, name, caption, callback, font, fontheight, relativity)
 		{

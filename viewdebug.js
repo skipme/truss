@@ -278,7 +278,7 @@
 			this.setLayer(menulayer);
 			this.Clear();
 
-			this.TextBoxRender();
+			//this.TextBoxRender();
 			this.RenderMenu(menulayer, menulayer);
 			// ui
 			this.RenderProxyPanels();
