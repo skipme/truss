@@ -27,9 +27,13 @@
 			]});
 		// panel and buttons and textbox
 			var pp = trs.showProxyPanel(25,60,128,128);
+			//f25b waterdrop
+			//f12e doc text
 			trs.loadFont("Ionicons", "fonts/ionicons.woff?v=1.3.5");
-			pp.addButton(trs, "test", "\uf14b", null, "24px Ionicons", 22,
-				{x:-12, y: 2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
+			pp.addButton(trs, "test", "\uf12e", null, "24px Ionicons", 22,
+				{x:-22, y: 2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
+			pp.addButton(trs, "test2", "\uf25b", null, "24px Ionicons", 22,
+				{x:-22, y: 2+26 +2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 		//
 		trs.DeltasMeasuring = [];
 

@@ -28,7 +28,7 @@
                     radius,
                     radius
                     );
-		colour = 
+		var colour = 
 		'hsla(' + Math.round(Math.random() * 360) + ', 80%, 60%';
 		// grad.addColorStop(0, 'rgba(255,255,255, 1)');
   //       grad.addColorStop(1, 'rgba(255,255,255, 0)');

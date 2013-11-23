@@ -43,8 +43,8 @@
 				proxy.x = updateProxyByRules(panel, rules.x, rules.xrule);
 				proxy.y = updateProxyByRules(panel, rules.y, rules.yrule);
 
-				proxy.w = (rules.rrule==="abs" ? rules.right : updateProxyByRules(panel, rules.right, rules.rrule));
-				proxy.h = (rules.brule==="abs" ? rules.bottom : updateProxyByRules(panel, rules.bottom, rules.brule));
+				proxy.w = (rules.rrule==="abs" ? rules.right : updateProxyByRules(panel, rules.right, rules.rrule)-proxy.x);
+				proxy.h = (rules.brule==="abs" ? rules.bottom : updateProxyByRules(panel, rules.bottom, rules.brule)-proxy.y);
 			};
 		}
 		function updateProxyByRules(panel, val, rule)
@@ -75,6 +75,9 @@
 		function RenderProxyPanels()
 		{
 			var panel = this.proxyPanel.activepanel;
+			this.context.fillStyle = "rgba(255, 255, 255, .8)";
+			this.context.fillRect(panel.x, panel.y, panel.w, panel.h);
+
 			for (var i = 0; i < panel.bindings.length; i++) {
 				var proxy = panel.bindings[i].proxy;
 				if(typeof proxy.render !== "undefined" && this.isFunction(proxy.render))

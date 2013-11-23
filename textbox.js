@@ -2,7 +2,8 @@
 
 	function cTextBox(trs){
 		trs.TextBox = { x: 0, y: 0, width: 128, height: 14, isOnDisplay: false, activeBox:
-		 {multiline: false, label: "nolabel",
+		 {
+		 	multiline: false, label: "nolabel",
 		 	caretOnDisplay: 0.1, caretOnDisplayAlphaIncStep: 3*1.0/30, caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
 		 	state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: 0,
 		 	text: "first line", lines: 
@@ -11,6 +12,8 @@
 		 	], 
 		 	fadeIn: 0, fadeOut: false
 		  }
+		  // textboxes: [
+		  // ]
 		 };
 
 		trs.TextBoxShow = showTextBox;
