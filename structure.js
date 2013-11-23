@@ -25,6 +25,11 @@
 			{text:'play intro video', callback:undefined},
 			{text:'play all history', callback:undefined},
 			]});
+		// panel and buttons and textbox
+			var pp = trs.showProxyPanel(25,60,128,128);
+			trs.loadFont("Ionicons", "fonts/ionicons.woff?v=1.3.5");
+			pp.addButton(trs, "test", "\uf14b", null, "24px Ionicons", 22,
+				{x:-12, y: 2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 		//
 		trs.DeltasMeasuring = [];
 
@@ -373,5 +378,5 @@
 			}
 		}
 	}
-	truss_o.extendModule(cStructure, "view.Structure", ["view.Input", "core.Events", "core.Animate", "objects.Tree", "view.Interface", "view.Menu"]);
+	truss_o.extendModule(cStructure, "view.Structure", ["view.Input", "core.Events", "core.Animate", "objects.Tree", "view.Interface", "view.Menu", "view.ProxyPanel"]);
 }());

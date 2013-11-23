@@ -7,18 +7,20 @@
 		}
 		function loadFont(name, src)
 		{
-			if(familys.indexOf(name)>=0)
+			if(this.fonts.familys.indexOf(name)>=0)
 				return name;
 
 			var newStyle = document.createElement('style');
-			newStyle.appendChild(document.createTextNode("\
-			@font-face {\
-			    font-family: '" + name + "';\
-			    src: url('" + src + "') format(woff);\
-			}\
+			newStyle.appendChild(document.createTextNode(" \
+			@font-face { \
+  font-family: \""+ name +"\"; \
+ \
+  src: url(\""+src+"\") format(\"woff\"); \
+  font-weight: normal; \
+  font-style: normal; } \
 			"));
 			document.head.appendChild(newStyle);
-			familys.push(name);
+			this.fonts.familys.push(name);
 			
 			return name;
 		}
