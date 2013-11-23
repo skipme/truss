@@ -13,8 +13,8 @@
 			update:update
 		};
 
-		trs.option('view.dbg.backgroundColor1', "rgba(60, 78, 98, 1)");
-		trs.option('view.dbg.backgroundColor2', "rgba(35, 47, 59, 1)");
+		trs.option('view.dbg.backgroundColor1', "rgba(28, 48, 75, 1)");//"rgba(60, 78, 98, 1)");
+		trs.option('view.dbg.backgroundColor2', "rgba(11, 20, 31, 1)");//"rgba(35, 47, 59, 1)");
 
 		trs.addViewEngine("Debug", iface);
 		trs.setViewEngine("Debug");

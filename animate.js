@@ -32,9 +32,10 @@
 		var thisFrameFPS = 1000.0 / (trs.fps.now - trs.fps.lastUpdate);
 		if(isNaN(thisFrameFPS))
 			thisFrameFPS = 0.1;
+
+  		trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
 		if(isNaN(trs.fps.rate))
 			trs.fps.rate = 0.1;
-  		trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
   		//if(trs.fps.rate)
   		trs.fps.lastUpdate = trs.fps.now;
   			

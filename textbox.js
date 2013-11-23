@@ -352,16 +352,16 @@
 		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
 		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-(4+12+2), trs.TextBox.width+4, 12+2);
 		
-		trs.context.font = "8pt Verdana";
+		trs.context.font = "10px Verdana";
 		trs.context.fillStyle = "rgba(255, 255, 255, "+trs.TextBox.activeBox.fadeIn+")";
-		trs.context.fillText(trs.TextBox.activeBox.label+":", trs.TextBox.x, trs.TextBox.y-(12+2));
+		trs.context.fillText(trs.TextBox.activeBox.label+":", trs.TextBox.x, trs.TextBox.y-2-2);
 	}
 
 	function setTextParams(trs)
 	{
 		trs.SetShadow();
-		trs.context.font = "10pt Verdana";
-		trs.context.textBaseline ="top";
+		trs.context.font = "12px Verdana";
+		trs.context.textBaseline = "bottom";// "top";
 		trs.context.textAlign = 'start';
 		trs.context.fillStyle = "rgba(0, 0, 0, "+trs.TextBox.activeBox.fadeIn+")";//"rgb(0, 0, 0)";
 	}
@@ -381,7 +381,7 @@
 			}
 			else
 			{		
-				trs.context.fillText(acb.lines[i].t, trs.TextBox.x, acb.lines[i].y);
+				trs.context.fillText(acb.lines[i].t, trs.TextBox.x, acb.lines[i].y+12);
 			}
 			if(!trs.TextBox.multiline)
 				break;
