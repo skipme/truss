@@ -26,16 +26,28 @@
 			{text:'play all history', callback:undefined},
 			]});
 		// panel and buttons and textbox
-			var pp = trs.showProxyPanel(25,60,128,128);
+			var pp = trs.showProxyPanel(25,60,128,212);
 			//f25b waterdrop
 			//f12e doc text
+			//f120 - ok
+			//f128 - cancel
 			trs.loadFont("Ionicons", "fonts/ionicons.woff?v=1.3.5");
 			pp.addButton(trs, "test", "\uf12e", null, "12px Ionicons", 12,
 				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
 				{x:-14, y: 2+14 +2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addTextBox(trs, "label", "text", false, null, 
-				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'})
+				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
+			
+			pp.addTextBox(trs, "label2", "text2", true, null, 
+				{x: 8, y: 22+16+22, right: -2, bottom: 120, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
+			
+			var btnOk = pp.addButton(trs, "test", "\uf120", null, "18px Ionicons", 20,
+				{x: 8, y: 22+16+22+120+4, right: 24, bottom: 24, xrule: 'left', yrule: 'top', rrule: 'abs', brule: 'abs'});
+			var btnCancel = pp.addButton(trs, "test", "\uf128", null, "18px Ionicons", 20,
+				{x: 8+24+4, y: 22+16+22+120+4, right: 24, bottom: 24, xrule: 'left', yrule: 'top', rrule: 'abs', brule: 'abs'});
+			btnOk.proxy.hovercolor = "rgb(40, 255, 187)";
+			btnCancel.proxy.hovercolor = "rgb(255, 40, 187)";
 			trs.EditPanel = pp;
 		//
 		trs.DeltasMeasuring = [];

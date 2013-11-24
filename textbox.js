@@ -17,8 +17,8 @@
 		};
 
 		trs.AddTextBox = AddTextBox;
-		trs.TextBoxShow = showTextBox;
-		trs.TextBoxHide = hideTextBox;
+		// trs.TextBoxShow = showTextBox;
+		// trs.TextBoxHide = hideTextBox;
 		trs.TextBoxTextGet = GetText;
 		trs.TextBoxInteractionInput = interactionInput;
 		trs.TextBoxGetSelectedText = getSelectedText;
@@ -44,7 +44,7 @@
 				
 				caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
 		 		state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: -1,
-		 		label: label, 
+		 		label: label, multiline: ismultiline, 
 		 		text: "first line", lines: [{t: text, w: 0, davw: 0, y: 0}]
 			};
 		// hitCursorToCaret(this, textbox, 0, 0, 0);
@@ -101,7 +101,7 @@
 			var my = trs.runtime.my;
 			var hit = false;
 			for (var i = 0; i < this.lines.length; i++) {
-				if(hittestrect(this.x-4, this.lines[i].y, this.w, 12, mx, my))
+				if(hittestrect(this.x-4, this.lines[i].y, this.w, this.h, mx, my))
 				{ 
 					hit = true;
 					break;
@@ -125,7 +125,7 @@
 			for (var i = 0; i < this.lines.length; i++) {
 				if(hittestrect(this.x-4, this.lines[i].y, this.w, 12, mx, my))
 				{ 
-					hitCursorToCaret(trs, this, i, mx);
+					hitCursorToCaret(trs, this, i, mx-this.x);
 					this.caretSETupDownX = this.caretPositionX;
 				}
 				if(!this.multiline)
@@ -229,21 +229,26 @@
 				setTextParams(trs);
 				var dim = trs.context.measureText(this.lines[this.caretLine].t.substr(0, this.caretIndex+1));
 				this.caretSETupDownX = this.caretPositionX = dim.width;
-			}else if(e.keyCode === 40 && this.TextBox.multiline)// down arrow
+
+			}else if(e.keyCode === 40)// down arrow
 			{
-				this.caretLine++;
-				if(this.caretLine >= this.lines.length)
-					this.caretLine = this.lines.length - 1;
+				if(this.multiline)
+				{
+					this.caretLine++;
+					if(this.caretLine >= this.lines.length)
+						this.caretLine = this.lines.length - 1;
 
-				hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
-
-			}else if(e.keyCode === 38 && this.TextBox.multiline)// up arrow
+					hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
+				}
+			}else if(e.keyCode === 38)// up arrow
 			{
-				this.caretLine--;
-				if(this.caretLine < 0)
-					this.caretLine = 0;
-				hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
-
+				if(this.multiline)
+				{
+					this.caretLine--;
+					if(this.caretLine < 0)
+						this.caretLine = 0;
+					hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
+				}
 			}else if(e.keyCode === 46)// del/delete
 			{
 				var str = this.lines[this.caretLine].t;
@@ -315,7 +320,7 @@
 		var avgindex = -1;
 		if(textbox.lines[lineIndex].t.length > 0)
 		{
-			avgindex = Math.floor((x-textbox.x) / textbox.lines[lineIndex].davw)-1;
+			avgindex = Math.floor((x) / textbox.lines[lineIndex].davw)-1;
 			if(avgindex < -1)
 				avgindex = -1;
 			
@@ -330,12 +335,12 @@
 
 			}else{
 
-				while((dim.width + textbox.x < x) && avgindex >= 0 && avgindex < tl)
+				while((dim.width < x) && avgindex >= 0 && avgindex < tl)
 				{
 					avgindex ++;
 					dim = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex+1));
 				}
-				var delta1 = dim.width + textbox.x - x;
+				var delta1 = dim.width - x;
 				var dim2 = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex));
 				//var delta2 = Math.abs(dim.width + textbox.x - x);
 				if(delta1 > 3)
@@ -376,7 +381,7 @@
 		trs.SetShadow(0,0,4,"rgba(255, 255, 255, "+Math.min(0.5,acb.fadeIn)+")");
 		
 		//255, 187, 40
-		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.8,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.7,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
 		trs.context.fillRect(textbox.x-4, textbox.y-4, textbox.w+4, textbox.h+4);
 		trs.SetShadow();
 		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.4,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
@@ -429,26 +434,26 @@
 		trs.context.closePath();
     	trs.context.stroke();
 	}
-	function showTextBox(x, y, label, text, ismultiline, acceptedOrDeclined)
-	{
-		if(x === "right")
-		{
-			x = this.bounds.width - this.TextBox.width - 4; 
-		}
-		this.TextBox.x = x;
-		this.TextBox.y = y;
+	// function showTextBox(x, y, label, text, ismultiline, acceptedOrDeclined)
+	// {
+	// 	if(x === "right")
+	// 	{
+	// 		x = this.bounds.width - this.TextBox.width - 4; 
+	// 	}
+	// 	this.TextBox.x = x;
+	// 	this.TextBox.y = y;
 
-		this.TextBox.activeBox.acceptedOrDeclined = acceptedOrDeclined;
-		this.TextBox.activeBox.label = label;
-		this.TextBox.activeBox.text = text;
-		this.TextBox.activeBox.lines = [{t: text, w: 0, davw: 0, y: y}];
-		hitCursorToCaret(this, 0, x+1,y+1)
-		this.TextBox.activeBox.fadeIn = 0;
-		this.TextBox.activeBox.measured = false;
-		this.TextBox.isOnDisplay = true;
+	// 	this.TextBox.activeBox.acceptedOrDeclined = acceptedOrDeclined;
+	// 	this.TextBox.activeBox.label = label;
+	// 	this.TextBox.activeBox.text = text;
+	// 	this.TextBox.activeBox.lines = [{t: text, w: 0, davw: 0, y: y}];
+	// 	hitCursorToCaret(this, 0, x+1,y+1)
+	// 	this.TextBox.activeBox.fadeIn = 0;
+	// 	this.TextBox.activeBox.measured = false;
+	// 	this.TextBox.isOnDisplay = true;
 
-		this.update();	
-	}
+	// 	this.update();	
+	// }
 	function hideTextBox()
 	{
 		this.TextBox.isOnDisplay = false;

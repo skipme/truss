@@ -42,6 +42,7 @@
 		{
 			// set childs visibility: 1
 			// update relativitys
+			x = this.bounds.width - w - 4; 
 			this.proxyPanel.activepanel.x = x;
 			this.proxyPanel.activepanel.y = y;
 			this.proxyPanel.activepanel.w = w;
