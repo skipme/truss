@@ -90,7 +90,7 @@
 		function RenderProxyPanels()
 		{
 			var panel = this.proxyPanel.activepanel;
-			this.context.fillStyle = "rgba(255, 255, 255, .8)";
+			this.context.fillStyle = "rgba(37, 51, 62, .8)";
 			this.context.fillRect(panel.x, panel.y, panel.w, panel.h);
 
 			for (var i = 0; i < panel.bindings.length; i++) {

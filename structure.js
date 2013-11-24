@@ -30,10 +30,10 @@
 			//f25b waterdrop
 			//f12e doc text
 			trs.loadFont("Ionicons", "fonts/ionicons.woff?v=1.3.5");
-			pp.addButton(trs, "test", "\uf12e", null, "24px Ionicons", 22,
-				{x:-22, y: 2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
-			pp.addButton(trs, "test2", "\uf25b", null, "24px Ionicons", 22,
-				{x:-22, y: 2+26 +2, right: 0, bottom: 26, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
+			pp.addButton(trs, "test", "\uf12e", null, "12px Ionicons", 12,
+				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
+			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
+				{x:-14, y: 2+14 +2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addTextBox(trs, "label", "text", false, null, 
 				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'})
 			trs.EditPanel = pp;

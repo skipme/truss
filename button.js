@@ -19,14 +19,14 @@
 			trs.context.textBaseline = "bottom";// "top";
 			trs.context.textAlign = 'start';
 
-			trs.context.fillStyle = "rgba(0, 0, 0, .7)";//"rgb(0, 0, 0)";
+			trs.context.fillStyle = "rgba(111, 111, 111, 1)";//"rgb(0, 0, 0)";
 		}
 		function renderButton(trs)
 		{
 			var button = this;
 			// var colour = 
 		// 'hsla(' + Math.round(Math.random() * 360) + ', 80%, 60%'+ ',0.7)';
-			trs.context.fillStyle = "rgba(255, 255, 255, .8)";//"rgba(255, 187, 40, 1)";//"rgba(255, 255, 255, 0.6)";
+			trs.context.fillStyle = "rgba(37, 51, 62, .8)";//"rgba(255, 187, 40, 1)";//"rgba(255, 255, 255, 0.6)";
 			trs.context.fillRect(button.x, button.y, button.w, button.h);
 			setTextParams(trs, button);
 			trs.context.fillText(button.caption, button.x + 2, button.y + button.h - 2);

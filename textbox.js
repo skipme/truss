@@ -379,7 +379,7 @@
 		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.8,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
 		trs.context.fillRect(textbox.x-4, textbox.y-4, textbox.w+4, textbox.h+4);
 		trs.SetShadow();
-		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.8,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.4,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
 		trs.context.fillRect(textbox.x-4, textbox.y-(4+12+2), textbox.w+4, 12+2);
 		
 		trs.context.font = "10px Verdana";
