@@ -15,6 +15,21 @@
 		function interactionEntry(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 		{
 			var panel = this.proxyPanel.activepanel;
+			if(mouseDown !== null)
+			{
+				var e = mouseDown;
+				var mx = this.runtime.mx;
+				var my = this.runtime.my;
+				// set caret position
+				// assume drag over point
+
+				if(hittestrect(panel.x, panel.y, panel.w, panel.h, mx, my))		
+					for (var i = 0; i < panel.bindings.length; i++) {
+						var proxy = panel.bindings[i].proxy;
+						proxy.focus = hittestrect(proxy.x, proxy.y, proxy.w, proxy.h, mx, my);
+					}	
+
+			}
 
 			for (var i = 0; i < panel.bindings.length; i++) {
 				var proxy = panel.bindings[i].proxy;
@@ -107,6 +122,9 @@
 			ap.bindings.push({refName: refControlName, positionAndSize: positionAndSize, 
 				relativePos: relativePos, visibility: visibility,
 				interaction: interaction, focus: focus});
+		}
+		function hittestrect(x,y,w,h,hitX,hitY) {
+			return(x<hitX&&x+w>=hitX&&y<hitY&&y+h>=hitY);
 		}
 		truss_o.extendModule(vPanel, "view.ProxyPanel", ["view.Interface", "core.runtime", "view.Button", "view.TextBox"]);
 }());

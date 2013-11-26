@@ -26,7 +26,7 @@
 			{text:'play all history', callback:undefined},
 			]});
 		// panel and buttons and textbox
-			var pp = trs.showProxyPanel(25,60,128,212);
+			var pp = trs.showProxyPanel(25,60,164,212);
 			//f25b waterdrop
 			//f12e doc text
 			//f120 - ok
@@ -36,10 +36,10 @@
 				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
 				{x:-14, y: 2+14 +2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
-			pp.addTextBox(trs, "label", "text", false, null, 
+			pp.addTextBox(trs, "left caption", "text", false, null, 
 				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
-			pp.addTextBox(trs, "label2", "text2", true, null, 
+			pp.addTextBox(trs, "right text", "text2", true, null, 
 				{x: 8, y: 22+16+22, right: -2, bottom: 120, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
 			var btnOk = pp.addButton(trs, "test", "\uf120", null, "18px Ionicons", 20,
@@ -209,6 +209,8 @@
 
 			this.runtime.mx = mx;
 			this.runtime.my = my;
+
+			this.ProxyPanelInteractionEntry(null,null, e,null,null);
 
 			if(this.menu.displayMenu)
 			{
