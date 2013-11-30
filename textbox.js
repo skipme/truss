@@ -67,14 +67,16 @@
 	{
 		// if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
 		{
-			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep;
+			var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
+
+			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep * mod;
 			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay >= 1)
 			{
-				var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
-
+				
+				// var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
 				if(this.TextBox.activeBox.caretOnDisplay < 0)
-					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod;
-				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod * -1;
+					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = 1;//mod;
+				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = -1;//mod * -1;
 
 			}
 			// if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
@@ -252,11 +254,7 @@
 
 							hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
 							scrolltoCaret(trs, this);
-							if(this.lines[this.caretLine].y - this.y - 2 + this.fonth - this.scrolly > this.h - 4)
-							{
-								this.scrolly = this.lines[this.caretLine].y - this.y + this.fonth - this.h + 4;
-								this.measured = false;
-							}
+
 						}
 					}else if(e.keyCode === 38)// up arrow
 					{
@@ -267,11 +265,7 @@
 								this.caretLine = 0;
 							hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
 							scrolltoCaret(trs, this);
-							if(this.lines[this.caretLine].y - 2 - this.scrolly < this.y)
-							{
-								this.scrolly = this.lines[this.caretLine].y - 2 - this.y;
-								this.measured = false;
-							}
+
 						}
 					}else if(e.keyCode === 46)// del/delete
 					{
@@ -309,10 +303,9 @@
 							this.caretPositionY = this.lines[this.caretLine-1].y+this.fonth;
 							this.caretSETupDownX = this.caretPositionX = 0;
 							this.measured = false;
-							if(this.lines[this.caretLine].y - this.y - 2 + this.fonth - this.scrolly > this.h - 4)
-							{
-								this.scrolly = this.lines[this.caretLine].y - this.y + this.fonth - this.h + 4;
-							}
+
+							this.textheight = nly - this.y;
+							scrolltoCaret(trs, this);
 						}else{
 							if(typeof this.acceptedOrDeclined !== "undefined" && trs.isFunction(this.acceptedOrDeclined))
 								this.acceptedOrDeclined.call(trs, "OK");
@@ -397,27 +390,33 @@
 	}
 	function scrolltoCaret(trs, textbox)
 	{
-		var carety = textbox.lines[textbox.caretLine].y - textbox.y;
+		var carety = textbox.lines[textbox.caretLine].y - textbox.y ;
 		var caretx = textbox.caretPositionX;// - textbox.x;
 
-		if(caretx - textbox.scrollx >= textbox.w)
+		if(caretx - textbox.scrollx  >= textbox.w)
 		{
-			textbox.scrollx = caretx - textbox.w + 2;
+			textbox.scrollx = caretx - textbox.w + 44;
+
 			textbox.measured = false;
 		}else if(caretx - textbox.scrollx <= 0){
-			textbox.scrollx = caretx;
+			textbox.scrollx = caretx-44;
+			if(textbox.scrollx < 0)
+				textbox.scrollx = 0;
 			textbox.measured = false;
 		}
 
-		if(carety - textbox.scrolly < 0)
+		if(carety - textbox.scrolly+ textbox.fonth >= textbox.h)
 		{
-			textbox.scrolly = carety;
+			textbox.scrolly = carety - textbox.h + 44;
+
+			textbox.measured = false;
+		}else if(carety - textbox.scrolly <= 0){
+			textbox.scrolly = carety-44;
+			if(textbox.scrolly < 0)
+				textbox.scrolly = 0;
 			textbox.measured = false;
 		}
-		else if (carety - textbox.scrolly > textbox.h) {
-			textbox.scrolly = textbox.h - carety;
-			textbox.measured = false;
-		}
+
 	}
 	// function drawTextBox()
 	// {
@@ -517,16 +516,6 @@
 		{
 			textbox.textwidth = textwidth;
 			textbox.textheight = textheight;
-			// if(textbox.textheight + textbox.fonth > textbox.h)
-			// {
-			// 	textbox.scrollchunkyh = (textbox.h / textheight) * textbox.h; 
-			// 	textbox.scrollchunkyy = (textbox.h / textheight) * textbox.scrolly;
-			// 	if(textbox.y-textbox.scrolly+textheight < textbox.y + textbox.h)
-			// 		textbox.scrollchunkyy -= (textbox.h / textheight) * ((textbox.y + textbox.h) - (textbox.y-textbox.scrolly+textheight));
-			// }else{
-			// 	textbox.scrollchunkyy = textbox.scrolly = 0;
-			// 	textbox.scrollchunkyh = textbox.h;
-			// }
 			//                        aspect                   scroll area
 			var overheadh = textbox.h+textbox.scrolly-	textheight;
 			overheadh = overheadh > 0? overheadh:0;
@@ -538,7 +527,6 @@
 			textbox.scrollchunkxw = (textbox.w / (textwidth+overhead)) * textbox.w;
 			textbox.scrollchunkxx =  (textbox.w / (textwidth+overhead)) * textbox.scrollx;
 
-			
 			//
 			textbox.measured = true;
 			return;
