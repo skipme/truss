@@ -121,8 +121,8 @@
 				if(mouseUp !== null && mouseUp.which === 1)
 				{
 					var e = mouseUp;
-					var mx = trs.runtime.mx;
-					var my = trs.runtime.my;
+					var mx = trs.runtime.mx + this.scrollx;
+					var my = trs.runtime.my + this.scrolly;
 					// set caret position
 					// assume drag over point
 
@@ -167,6 +167,7 @@
 							this.caretIndex--;
 							this.caretSETupDownX = this.caretPositionX = dim.width;
 							this.measured = false;
+							scrolltoCaret(trs, this)
 						}
 					}else if(e.keyCode === 37)// left arrow
 					{
@@ -199,6 +200,8 @@
 						setTextParams(trs);
 						var dim = trs.context.measureText(this.lines[this.caretLine].t.substr(0, this.caretIndex+1));
 						this.caretSETupDownX = this.caretPositionX = dim.width;
+						scrolltoCaret(trs, this);
+
 					}else if(e.keyCode === 39)// right arrow
 					{
 						if(e.ctrlKey)
@@ -237,6 +240,7 @@
 						setTextParams(trs);
 						var dim = trs.context.measureText(this.lines[this.caretLine].t.substr(0, this.caretIndex+1));
 						this.caretSETupDownX = this.caretPositionX = dim.width;
+						scrolltoCaret(trs, this);
 
 					}else if(e.keyCode === 40)// down arrow
 					{
@@ -247,6 +251,7 @@
 								this.caretLine = this.lines.length - 1;
 
 							hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
+							scrolltoCaret(trs, this);
 							if(this.lines[this.caretLine].y - this.y - 2 + this.fonth - this.scrolly > this.h - 4)
 							{
 								this.scrolly = this.lines[this.caretLine].y - this.y + this.fonth - this.h + 4;
@@ -261,6 +266,7 @@
 							if(this.caretLine < 0)
 								this.caretLine = 0;
 							hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
+							scrolltoCaret(trs, this);
 							if(this.lines[this.caretLine].y - 2 - this.scrolly < this.y)
 							{
 								this.scrolly = this.lines[this.caretLine].y - 2 - this.y;
@@ -292,9 +298,10 @@
 							this.caretLine++;
 							if(this.caretLine > this.lines.length)
 								throw '';
+							var nly = (this.caretLine === 0 ? this.fonth: this.lines[this.caretLine-1].y+this.fonth);
 							if(this.caretLine === this.lines.length)
-								this.lines.push({t: "xu", w: 0, davw: 0, y: 0});
-							else this.lines.splice(this.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
+								this.lines.push({t: "xu", w: 0, davw: 0, y: nly});
+							else this.lines.splice(this.caretLine, 0, {t: "xu", w: 0, davw: 0, y: nly});
 
 							this.lines[this.caretLine-1].t = str.substr(0, this.caretIndex+1);
 							this.lines[this.caretLine].t = str.substr(this.caretIndex+1, str.length-this.caretIndex-1);
@@ -302,6 +309,10 @@
 							this.caretPositionY = this.lines[this.caretLine-1].y+this.fonth;
 							this.caretSETupDownX = this.caretPositionX = 0;
 							this.measured = false;
+							if(this.lines[this.caretLine].y - this.y - 2 + this.fonth - this.scrolly > this.h - 4)
+							{
+								this.scrolly = this.lines[this.caretLine].y - this.y + this.fonth - this.h + 4;
+							}
 						}else{
 							if(typeof this.acceptedOrDeclined !== "undefined" && trs.isFunction(this.acceptedOrDeclined))
 								this.acceptedOrDeclined.call(trs, "OK");
@@ -327,6 +338,7 @@
 						this.caretSETupDownX = this.caretPositionX = dim.width;
 						this.measured = false;
 						this.caretIndex++;
+						scrolltoCaret(trs, this);
 						// console.log(keychar)
 					}
 				}
@@ -386,6 +398,16 @@
 	function scrolltoCaret(trs, textbox)
 	{
 		var carety = textbox.lines[textbox.caretLine].y - textbox.y;
+		var caretx = textbox.caretPositionX;// - textbox.x;
+
+		if(caretx - textbox.scrollx >= textbox.w)
+		{
+			textbox.scrollx = caretx - textbox.w + 2;
+			textbox.measured = false;
+		}else if(caretx - textbox.scrollx <= 0){
+			textbox.scrollx = caretx;
+			textbox.measured = false;
+		}
 
 		if(carety - textbox.scrolly < 0)
 		{
@@ -416,7 +438,7 @@
 		//255, 187, 40
 		if(textbox.focus)
 			trs.context.fillStyle = "rgba(236, 244, 252, "+Math.min(0.9,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
-		else trs.context.fillStyle = "rgba(220, 250, 220, "+Math.min(0.7,acb.fadeIn)+")";
+		else trs.context.fillStyle = "rgba(136, 136, 136, "+Math.min(0.7,acb.fadeIn)+")";
 		trs.context.fillRect(textbox.x-4, textbox.y-4, textbox.w+4, textbox.h+4);
 		trs.SetShadow();
 		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.4,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
@@ -427,10 +449,22 @@
 		trs.context.fillStyle = "rgba(255, 255, 255, "+acb.fadeIn+")";
 		trs.context.fillText(textbox.label+":", textbox.x, textbox.y-4-2);
 
-		trs.context.fillStyle = "rgba(255, 0, 0, "+acb.fadeIn+")";
+		// scrollbars:
+		trs.context.fillStyle = "rgba(255, 0, 0, "+Math.min(.7,acb.fadeIn)+")";
+		if(textbox.multiline)
+		{
+			if(textbox.scrollchunkyh < textbox.h || textbox.scrolly > 0)
+			{
+				var hmaxscrl = textbox.h-4;
+				trs.context.fillRect(textbox.x+textbox.w-3, textbox.y+textbox.scrollchunkyy, 2, textbox.scrollchunkyh);
+			}
 
-		var hmaxscrl = textbox.h-4;
-		trs.context.fillRect(textbox.x+textbox.w-8, textbox.y+textbox.scrollchunkyy, 6, ((textbox.scrollchunkyh>hmaxscrl)?hmaxscrl:textbox.scrollchunkyh));
+		}
+
+		if(textbox.scrollchunkxw < textbox.w || textbox.scrollx > 0)
+		{
+			trs.context.fillRect(textbox.x+textbox.scrollchunkxx, textbox.y+textbox.h-(textbox.multiline?3:2), textbox.scrollchunkxw, textbox.multiline?2:1);
+		}
 	}
 
 	function setTextParams(trs)
@@ -454,7 +488,8 @@
 	    	trs.context.beginPath();
 			trs.context.rect(textbox.x, textbox.y-4, textbox.w, textbox.h+4);
 	        trs.context.clip();
-	        trs.context.translate(0, -textbox.scrolly);
+	        // scroll here:
+	        trs.context.translate(-textbox.scrollx, -textbox.scrolly);
 	    }
 
 		for (var i = 0; i < textbox.lines.length; i++) {
@@ -482,22 +517,27 @@
 		{
 			textbox.textwidth = textwidth;
 			textbox.textheight = textheight;
-			if(textbox.textheight + textbox.fonth > textbox.h)
-			{
-				textbox.scrollchunkyh = (textbox.h / textheight) * textbox.h; 
-				textbox.scrollchunkyy = (textbox.h / textheight) * textbox.scrolly;
-				if(textbox.y-textbox.scrolly+textheight < textbox.y + textbox.h)
-					textbox.scrollchunkyy -= (textbox.h / textheight) * ((textbox.y + textbox.h) - (textbox.y-textbox.scrolly+textheight));
-			}else{
-				textbox.scrollchunkyy = textbox.scrolly = 0;
-				textbox.scrollchunkyh = textbox.h;
-			}
-			//                        aspect                   scroll area	
-			textbox.scrollchunkxw = (textbox.w / textwidth) * textbox.w;
+			// if(textbox.textheight + textbox.fonth > textbox.h)
+			// {
+			// 	textbox.scrollchunkyh = (textbox.h / textheight) * textbox.h; 
+			// 	textbox.scrollchunkyy = (textbox.h / textheight) * textbox.scrolly;
+			// 	if(textbox.y-textbox.scrolly+textheight < textbox.y + textbox.h)
+			// 		textbox.scrollchunkyy -= (textbox.h / textheight) * ((textbox.y + textbox.h) - (textbox.y-textbox.scrolly+textheight));
+			// }else{
+			// 	textbox.scrollchunkyy = textbox.scrolly = 0;
+			// 	textbox.scrollchunkyh = textbox.h;
+			// }
+			//                        aspect                   scroll area
+			var overheadh = textbox.h+textbox.scrolly-	textheight;
+			overheadh = overheadh > 0? overheadh:0;
+			textbox.scrollchunkyh = (textbox.h / (textheight+overheadh)) * textbox.h;
+			textbox.scrollchunkyy =  (textbox.h / (textheight+overheadh)) * textbox.scrolly;
 			//
+			var overhead = textbox.w+textbox.scrollx-	textwidth;
+			overhead = overhead > 0? overhead:0;
+			textbox.scrollchunkxw = (textbox.w / (textwidth+overhead)) * textbox.w;
+			textbox.scrollchunkxx =  (textbox.w / (textwidth+overhead)) * textbox.scrollx;
 
-			textbox.scrollchunkxx =  (textbox.w / textwidth) * textbox.scrollx;
-			//
 			
 			//
 			textbox.measured = true;
