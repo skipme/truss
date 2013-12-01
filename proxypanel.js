@@ -1,10 +1,13 @@
 (function(){
 		function vPanel(trs){
-			trs.proxyPanel = { activepanel: {
+			trs.proxyPanel = { 
+				activepanel: {
 				x: 0, y: 0, w: 0, h: 0,
-				visibility: false,
+				visible: false,
 				bindings: [
-					{refName: 'i', relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, proxy: {}}
+					{refName: 'i', 
+					relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, 
+					proxy: {}}
 				],
 				addTextBox: addTextBox, addButton: addButton, getControl: getControl,
 				Show: FadeIn, Hide: FadeOut
@@ -13,39 +16,80 @@
 			trs.RenderProxyPanels = RenderProxyPanels;
 			trs.showProxyPanel = showProxyPanel;
 			trs.ProxyPanelInteractionEntry = interactionEntry;
+			trs.CreateTimer(1000/60, shHideCaretAndFade);
+		}
+		function shHideCaretAndFade()
+		{
+
+			if(this.proxyPanel.activepanel.visible)
+			{
+				var mod =2*1.0/(60/(60/(this.fps.rate>60?60:this.fps.rate)));
+
+				this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep * mod;
+				if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay >= 1)
+				{
+					
+					// var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
+					if(this.TextBox.activeBox.caretOnDisplay < 0)
+						this.TextBox.activeBox.caretOnDisplayAlphaIncStep = 1;//mod;
+					else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = -1;//mod * -1;
+
+				}
+				// if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
+				// {
+				// 	this.TextBox.activeBox.fadeIn +=0.25;
+				// }else
+				// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
+				// {
+				// 	this.TextBox.activeBox.fadeIn -=0.25;
+				// }
+				// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
+				// 	this.TextBox.activeBox.fadeOut = false;
+
+				this.update();	
+			}
 		}
 		function interactionEntry(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 		{
-			var panel = this.proxyPanel.activepanel;
-			if(mouseDown !== null)
+			if(this.proxyPanel.activepanel.visible)
 			{
-				var e = mouseDown;
-				var mx = this.runtime.mx;
-				var my = this.runtime.my;
-				// set caret position
-				// assume drag over point
+				var panel = this.proxyPanel.activepanel;
+				if(mouseDown !== null)
+				{
+					var e = mouseDown;
+					var mx = this.runtime.mx;
+					var my = this.runtime.my;
+					// set caret position
+					// assume drag over point
 
-				if(hittestrect(panel.x, panel.y, panel.w, panel.h, mx, my))		
-					for (var i = 0; i < panel.bindings.length; i++) {
-						var proxy = panel.bindings[i].proxy;
-						proxy.focus = hittestrect(proxy.x, proxy.y, proxy.w, proxy.h, mx, my);
-					}	
+					if(hittestrect(panel.x, panel.y, panel.w, panel.h, mx, my))		
+						for (var i = 0; i < panel.bindings.length; i++) {
+							var proxy = panel.bindings[i].proxy;
+							proxy.focus = hittestrect(proxy.x, proxy.y, proxy.w, proxy.h, mx, my);
+						}	
 
-			}
+				}
 
-			for (var i = 0; i < panel.bindings.length; i++) {
-				var proxy = panel.bindings[i].proxy;
-				if(typeof proxy.interaction !== "undefined" && this.isFunction(proxy.interaction))
-					proxy.interaction(this,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove);
-			}		
+				for (var i = 0; i < panel.bindings.length; i++) {
+					var proxy = panel.bindings[i].proxy;
+					if(typeof proxy.interaction !== "undefined" && this.isFunction(proxy.interaction))
+						proxy.interaction(this,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove);
+				}	
+			}	
 		}
-		function FadeIn()
+		function FadeIn(trs)
 		{
-			this.visibility = true;
+			this.visible = true;
+			trs.update();
 		}
-		function FadeOut()
+		function FadeOut(trs)
 		{
-			this.visibility = false;
+			this.visible = false;
+			for (var i = 0; i < this.bindings.length; i++) {
+				var proxy = this.bindings[i].proxy;
+				proxy.focus = proxy.hover = false;
+			}	
+			trs.update();
 		}
 		function getControl(trs, name, text)
 		{
@@ -124,7 +168,7 @@
 		function RenderProxyPanels()
 		{
 			var panel = this.proxyPanel.activepanel;
-			if(panel.visibility){
+			if(panel.visible){
 				this.context.fillStyle = "rgba(37, 51, 62, .8)";
 				this.context.fillRect(panel.x, panel.y, panel.w, panel.h);
 
@@ -140,7 +184,7 @@
 		{
 			var ap = this.proxyPanel.activepanel;
 			ap.bindings.push({refName: refControlName, positionAndSize: positionAndSize, 
-				relativePos: relativePos, visibility: visibility,
+				relativePos: relativePos, visible: visibility,
 				interaction: interaction, focus: focus});
 		}
 		function hittestrect(x,y,w,h,hitX,hitY) {

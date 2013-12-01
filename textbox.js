@@ -24,7 +24,7 @@
 		trs.TextBoxGetSelectedText = getSelectedText;
 
 		// trs.TextBoxRender = drawTextBox;
-		trs.CreateTimer(1000/30, shHideCaretAndFade);
+
 	}
 	function renderTextBox(trs)
 	{
@@ -80,36 +80,7 @@
 		};
 		return result;
 	}
-	function shHideCaretAndFade()
-	{
-		// if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
-		{
-			var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
 
-			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep * mod;
-			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay >= 1)
-			{
-				
-				// var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
-				if(this.TextBox.activeBox.caretOnDisplay < 0)
-					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = 1;//mod;
-				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = -1;//mod * -1;
-
-			}
-			// if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
-			// {
-			// 	this.TextBox.activeBox.fadeIn +=0.25;
-			// }else
-			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
-			// {
-			// 	this.TextBox.activeBox.fadeIn -=0.25;
-			// }
-			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
-			// 	this.TextBox.activeBox.fadeOut = false;
-
-			this.update();	
-		}
-	}
 	var ignoreCodes = [95,93,125,123,91,160,171,92,8230,187];
 	function interactionInput(trs,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 	{

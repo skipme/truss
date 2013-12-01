@@ -131,7 +131,7 @@
 		trs.EditPanel.getControl(trs, "label2").setText(txt2||"");
 		trs.EditPanel.getControl(trs, "bok").callback = function(){editAccepted.call(trs, "OK");}
 		trs.EditPanel.getControl(trs, "bc").callback = function(){editAccepted.call(trs, "Cancel");}
-		trs.EditPanel.Show();
+		trs.EditPanel.Show(trs);
 		// trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
 		trs.PushEvent("nodeEditStart", trs.editTextNode);
 	}
@@ -192,12 +192,12 @@
 			this.objects[this.editTextNode].labelRight = this.EditPanel.getControl(this, "label2").getText();
 			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label, this.objects[this.editTextNode].labelRight]);
 			// this.TextBoxHide();
-			this.EditPanel.Hide();
+			this.EditPanel.Hide(this);
 			this.editTextNode = -1;
 		}else{
 			this.PushEvent("nodeEditDecline", this.editTextNode);
 			// this.TextBoxHide();
-			this.EditPanel.Hide();
+			this.EditPanel.Hide(this);
 			this.editTextNode = -1;
 		}
 	}
