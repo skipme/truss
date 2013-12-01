@@ -31,8 +31,10 @@
 			trs.SetShadow();
 			// var colour = 
 		// 'hsla(' + Math.round(Math.random() * 360) + ', 80%, 60%'+ ',0.7)';
-			trs.context.fillStyle =  "rgba(37, 51, 62, .8)";//"rgba(255, 187, 40, 1)";//"rgba(255, 255, 255, 0.6)";
-			trs.context.fillRect(button.x, button.y, button.w, button.h);
+			if(button.drawbackground){
+				trs.context.fillStyle =  "rgba(37, 51, 62, .8)";//"rgba(255, 187, 40, 1)";//"rgba(255, 255, 255, 0.6)";
+				trs.context.fillRect(button.x, button.y, button.w, button.h);
+			}
 			setTextParams(trs, button);
 			trs.context.fillText(button.caption, button.x + 2, button.y + button.h - 2);
 
@@ -50,6 +52,17 @@
 				{ 
 					trs.setCursor("pointer")
 				}
+			}else if (mouseUp !== null)
+			{
+				var e = mouseUp;
+				var mx = trs.runtime.mx;
+				var my = trs.runtime.my;
+
+				if(hittestrect(this.x, this.y, this.w, this.h, mx, my))
+				{ 
+					if(typeof this.callback !== "undefined" && trs.isFunction(this.callback))
+						this.callback.call();
+				}
 			}
 		}
 		function hittestrect(x,y,w,h,hitX,hitY) {
@@ -61,7 +74,7 @@
 			var button = {
 					x:0, y: 0, w: 0, h: 0, 
 					visible: 1, interaction: interactionInput, focus: 0, hover: false, switched: false, 
-					hovercolor: "rgb(40, 187, 255)",
+					hovercolor: "rgb(40, 187, 255)", drawbackground: true,
 					render: renderButton,
 					caption: caption, font: font, fontheight: fontheight, callback: callback
 			};

@@ -19,7 +19,7 @@
 		trs.AddTextBox = AddTextBox;
 		// trs.TextBoxShow = showTextBox;
 		// trs.TextBoxHide = hideTextBox;
-		trs.TextBoxTextGet = GetText;
+		// trs.TextBoxTextGet = GetText;
 		trs.TextBoxInteractionInput = interactionInput;
 		trs.TextBoxGetSelectedText = getSelectedText;
 
@@ -42,7 +42,7 @@
 				fonth: 13,
 				scrollx: 0, scrolly: 0, scrollchunkyh: 0, scrollchunkxw: 0, scrollchunkyy: 0, scrollchunkxx: 0,
 				textwidth: 0, textheight: 0,
-				render: renderTextBox,
+				render: renderTextBox, setText: setText, getText: getText,
 				// caption: caption, font: font, fontheight: fontheight, callback: callback,
 				
 				caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
@@ -60,6 +60,23 @@
 		var result = "";
 		for (var i = 0; i < this.TextBox.activeBox.lines.length; i++) {
 			result += this.TextBox.activeBox.lines[i].t;
+		};
+		return result;
+	}
+
+	function setText(text)
+	{
+		this.lines.length = 1;
+		this.lines[0] = {t: text, w: 0, davw: 0, y: 0};
+		this.measured = false;
+		this.scrollx = this.scrolly = this.caretIndex = this.caretLine = 0;
+		this.text = text;
+	}
+	function getText()
+	{
+		var result = "";
+		for (var i = 0; i < this.lines.length; i++) {
+			result += this.lines[i].t;
 		};
 		return result;
 	}

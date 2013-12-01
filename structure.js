@@ -36,18 +36,21 @@
 				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
 				{x:-14, y: 2+14 +2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
-			pp.addTextBox(trs, "left caption", "text", false, null, 
+			pp.addTextBox(trs, "label", "left caption", "text", false, null, 
 				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
-			pp.addTextBox(trs, "right text", "text2", true, null, 
+			pp.addTextBox(trs, "label2", "right text", "text2", true, null, 
 				{x: 8, y: 22+16+22, right: -2, bottom: 120, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
-			var btnOk = pp.addButton(trs, "test", "\uf120", null, "18px Ionicons", 20,
+			var btnOk = pp.addButton(trs, "bok", "\uf120", null, "18px Ionicons", 20,
 				{x: 8, y: 22+16+22+120+4, right: 24, bottom: 24, xrule: 'left', yrule: 'top', rrule: 'abs', brule: 'abs'});
-			var btnCancel = pp.addButton(trs, "test", "\uf128", null, "18px Ionicons", 20,
+			var btnCancel = pp.addButton(trs, "bc", "\uf128", null, "18px Ionicons", 20,
 				{x: 8+24+4, y: 22+16+22+120+4, right: 24, bottom: 24, xrule: 'left', yrule: 'top', rrule: 'abs', brule: 'abs'});
 			btnOk.proxy.hovercolor = "rgb(40, 255, 187)";
 			btnCancel.proxy.hovercolor = "rgb(255, 40, 187)";
+			btnOk.proxy.drawbackground = false;
+			btnCancel.proxy.drawbackground = false;
+			
 			trs.EditPanel = pp;
 		//
 		trs.DeltasMeasuring = [];
@@ -122,8 +125,14 @@
 	{
 		trs.editTextNode = trs.selectedNode;
 		var txt = trs.objects[trs.editTextNode].label;
-		txt = txt||"";
-		trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
+		var txt2= trs.objects[trs.editTextNode].labelRight;
+
+		trs.EditPanel.getControl(trs, "label").setText(txt||"");
+		trs.EditPanel.getControl(trs, "label2").setText(txt2||"");
+		trs.EditPanel.getControl(trs, "bok").callback = function(){editAccepted.call(trs, "OK");}
+		trs.EditPanel.getControl(trs, "bc").callback = function(){editAccepted.call(trs, "Cancel");}
+		trs.EditPanel.Show();
+		// trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
 		trs.PushEvent("nodeEditStart", trs.editTextNode);
 	}
 	function dkeypress(e)
@@ -179,13 +188,16 @@
 	{
 		if(result === "OK")
 		{
-			this.objects[this.editTextNode].label = this.TextBoxTextGet();
-			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label]);
-			this.TextBoxHide();
+			this.objects[this.editTextNode].label = this.EditPanel.getControl(this, "label").getText();
+			this.objects[this.editTextNode].labelRight = this.EditPanel.getControl(this, "label2").getText();
+			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label, this.objects[this.editTextNode].labelRight]);
+			// this.TextBoxHide();
+			this.EditPanel.Hide();
 			this.editTextNode = -1;
 		}else{
 			this.PushEvent("nodeEditDecline", this.editTextNode);
-			this.TextBoxHide();
+			// this.TextBoxHide();
+			this.EditPanel.Hide();
 			this.editTextNode = -1;
 		}
 	}

@@ -2,10 +2,12 @@
 		function vPanel(trs){
 			trs.proxyPanel = { activepanel: {
 				x: 0, y: 0, w: 0, h: 0,
+				visibility: false,
 				bindings: [
 					{refName: 'i', relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, proxy: {}}
 				],
-				addTextBox: addTextBox, addButton: addButton,
+				addTextBox: addTextBox, addButton: addButton, getControl: getControl,
+				Show: FadeIn, Hide: FadeOut
 				},
 			};
 			trs.RenderProxyPanels = RenderProxyPanels;
@@ -37,7 +39,23 @@
 					proxy.interaction(this,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove);
 			}		
 		}
-		function addTextBox(trs, label, text, ismultiline, acceptedOrDeclined, relativity)
+		function FadeIn()
+		{
+			this.visibility = true;
+		}
+		function FadeOut()
+		{
+			this.visibility = false;
+		}
+		function getControl(trs, name, text)
+		{
+			for (var i = 0; i < this.bindings.length; i++) {
+				if(this.bindings[i].refName === name)
+					return this.bindings[i].proxy;
+			};
+			return null;
+		}
+		function addTextBox(trs, name, label, text, ismultiline, acceptedOrDeclined, relativity)
 		{
 			var textbox = trs.AddTextBox(label, text, ismultiline, acceptedOrDeclined);
 			var incapsulated = {refName: name, relative: relativity, proxy: textbox};
@@ -106,13 +124,15 @@
 		function RenderProxyPanels()
 		{
 			var panel = this.proxyPanel.activepanel;
-			this.context.fillStyle = "rgba(37, 51, 62, .8)";
-			this.context.fillRect(panel.x, panel.y, panel.w, panel.h);
+			if(panel.visibility){
+				this.context.fillStyle = "rgba(37, 51, 62, .8)";
+				this.context.fillRect(panel.x, panel.y, panel.w, panel.h);
 
-			for (var i = 0; i < panel.bindings.length; i++) {
-				var proxy = panel.bindings[i].proxy;
-				if(typeof proxy.render !== "undefined" && this.isFunction(proxy.render))
-					proxy.render(this);
+				for (var i = 0; i < panel.bindings.length; i++) {
+					var proxy = panel.bindings[i].proxy;
+					if(typeof proxy.render !== "undefined" && this.isFunction(proxy.render))
+						proxy.render(this);
+				}
 			}
 		}
 		// all refrence objects, but interaction is function

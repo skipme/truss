@@ -165,7 +165,7 @@
 	    			//textbox connection
 						this.context.beginPath();
 				    	this.context.moveTo(this.objects[i].x+0.5, this.objects[i].y+0.5);
-						this.context.lineTo(this.TextBox.x- this.objs_translate.xoffset, this.TextBox.y- this.objs_translate.yoffset);
+						this.context.lineTo(this.EditPanel.x- this.objs_translate.xoffset, this.EditPanel.y- this.objs_translate.yoffset);
 				    	this.context.closePath();
 				    	this.context.fill();
 				    	this.context.stroke();
