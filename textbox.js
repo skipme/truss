@@ -44,7 +44,7 @@
 				textwidth: 0, textheight: 0,
 				render: renderTextBox, setText: setText, getText: getText,
 				// caption: caption, font: font, fontheight: fontheight, callback: callback,
-				
+				acceptedOrDeclined: acceptedOrDeclined,
 				caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
 		 		state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: -1,
 		 		label: label, multiline: ismultiline, 
@@ -66,17 +66,21 @@
 
 	function setText(text)
 	{
-		this.lines.length = 1;
-		this.lines[0] = {t: text, w: 0, davw: 0, y: 0};
+		var tlines = text.split("\n"); 
+		this.lines.length = tlines.length;
+		//this.lines[0] = {t: text, w: 0, davw: 0, y: 0};
+		for (var i = 0; i < tlines.length; i++) {
+			this.lines[i] = {t: tlines[i], w: 0, davw: 0, y: 0};
+		};
 		this.measured = false;
-		this.scrollx = this.scrolly = this.caretIndex = this.caretLine = 0;
+		this.scrollx = this.scrolly = this.caretIndex = this.caretLine = this.caretPositionX = 0;
 		this.text = text;
 	}
 	function getText()
 	{
 		var result = "";
 		for (var i = 0; i < this.lines.length; i++) {
-			result += this.lines[i].t;
+			result += this.lines[i].t + (i+1< this.lines.length?"\n":"");
 		};
 		return result;
 	}

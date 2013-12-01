@@ -36,10 +36,10 @@
 				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
 				{x:-14, y: 2+14 +2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
-			pp.addTextBox(trs, "label", "left caption", "text", false, null, 
+			pp.addTextBox(trs, "label", "left caption", "text", false, editAccepted, 
 				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
-			pp.addTextBox(trs, "label2", "right text", "text2", true, null, 
+			pp.addTextBox(trs, "label2", "right text", "text2", true, editAccepted, 
 				{x: 8, y: 22+16+22, right: -2, bottom: 120, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
 			var btnOk = pp.addButton(trs, "bok", "\uf120", null, "18px Ionicons", 20,
@@ -285,7 +285,7 @@
 				}
 
 			} else if(this.editTextNode===-1) {
-				if(this.selectedNode >= 0)
+				if(this.selectedNode >= 0 || this.objects.length === 0)
 				{
 					this.ShowMenu("node", mx, my);
 				}else{

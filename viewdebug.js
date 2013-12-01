@@ -228,7 +228,9 @@
 		  				this.AABBboundsUpdate(tx, tx+dim.width, ty, ty+12);
 		  			}
 		  			if(this.objects[i].labelRight !== undefined){
-		  				var dim = this.context.measureText(this.objects[i].labelRight);
+		  				var lrtext = this.objects[i].labelRight;
+		  				lrtext = lrtext.length > 21 ? lrtext.substr(0,18)+"...":lrtext;
+		  				var dim = this.context.measureText(lrtext);
 		  				var tx = this.objects[i].x+this.options.view.node.radius+ 4;
 		  				var ty = this.objects[i].y+this.options.view.node.radius*.5;
 
@@ -236,7 +238,7 @@
 		  				this.context.fillRect(tx,ty-10,dim.width, 12)
 
 						this.context.fillStyle = "rgb(255, 255, 255)";
-		  				this.context.fillText(this.objects[i].labelRight, tx, ty);
+		  				this.context.fillText(lrtext, tx, ty);
 		  				this.AABBboundsUpdate(tx, tx + dim.width, ty-10 ,ty + 12);
 		  			}
 				}

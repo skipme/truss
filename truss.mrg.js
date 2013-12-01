@@ -560,7 +560,7 @@ var truss_o;
 				if(typeof data !== 'undefined' && data>=0)
 				{
 					index = this.AddObject(name, this.objects[data].x+2, this.objects[data].y+45, prot);
-					var gxy = guessNxy(this, data);
+					var gxy = guessNxy(this, data, index);
 					if(typeof gxy !== 'undefined')
 					{
 						this.PushEvent("moved", [index, gxy.x, gxy.y]);
@@ -645,16 +645,27 @@ var truss_o;
 			break;
 		}
 	}
-	function guessNxy(trs, parentIndex)
+	function guessNxy(trs, parentIndex, cindex)
 	{
 		var obj = trs.objects[parentIndex];
 		var parents = trs.ConnectedTo(parentIndex);
-		
+		var childs = trs.ConnectedFrom(parentIndex);
+		if(childs.length > 1)
+		{
+			var idx = 0;
+			if(childs[0] === cindex)
+				idx = childs[1];
+			else idx = childs[0];
+			var child = trs.objects[idx];
+			var dx = child.x-obj.x +21;
+			var dy = child.y-obj.y +11;
+			return {x:dx+obj.x, y:dy+obj.y};
+		}
 		if(parents.length === 1)
 		{
 			var parentOfParent = trs.objects[parents[0]];
-			dx = obj.x-parentOfParent.x;
-			dy = obj.y-parentOfParent.y;
+			var dx = obj.x-parentOfParent.x;
+			var dy = obj.y-parentOfParent.y;
 			return {x:dx+obj.x, y:dy+obj.y};
 		}
 		// return undefined;
@@ -1479,6 +1490,7 @@ truss_o.say();
 		trs.separateIfOneConnection = separateIfOneConnection;
 		trs.RemoveObject = RemoveNode;
 		trs.ConnectedTo = ConnectedTo;
+		trs.ConnectedFrom = ConnectedFrom;
 
 		trs.runtime.temporaryConnection = false;
 		trs.runtime.connectFrom = -1;
@@ -1714,17 +1726,31 @@ truss_o.say();
 		};
 		return parents;	
 	}
+	function ConnectedFrom(index)
+	{
+		var childs = [];
+		for (var i = 0; i < this.conIndexes.length; i++) {
+			if(this.conIndexes[i][0] === index)
+			{
+				childs.push(this.conIndexes[i][1]);
+			}
+		};
+		return childs;	
+	}
 	truss_o.extendModule(Tree, "objects.Tree", ["core.Events", "core.runtime"]);
 }());
 
 // "proxypanel.js"
 (function(){
 		function vPanel(trs){
-			trs.proxyPanel = { activepanel: {
+			trs.proxyPanel = { 
+				activepanel: {
 				x: 0, y: 0, w: 0, h: 0,
-				visibility: false,
+				visible: false,
 				bindings: [
-					{refName: 'i', relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, proxy: {}}
+					{refName: 'i', 
+					relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, 
+					proxy: {}}
 				],
 				addTextBox: addTextBox, addButton: addButton, getControl: getControl,
 				Show: FadeIn, Hide: FadeOut
@@ -1733,39 +1759,80 @@ truss_o.say();
 			trs.RenderProxyPanels = RenderProxyPanels;
 			trs.showProxyPanel = showProxyPanel;
 			trs.ProxyPanelInteractionEntry = interactionEntry;
+			trs.CreateTimer(1000/60, shHideCaretAndFade);
+		}
+		function shHideCaretAndFade()
+		{
+
+			if(this.proxyPanel.activepanel.visible)
+			{
+				var mod =2*1.0/(60/(60/(this.fps.rate>60?60:this.fps.rate)));
+
+				this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep * mod;
+				if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay >= 1)
+				{
+					
+					// var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
+					if(this.TextBox.activeBox.caretOnDisplay < 0)
+						this.TextBox.activeBox.caretOnDisplayAlphaIncStep = 1;//mod;
+					else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = -1;//mod * -1;
+
+				}
+				// if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
+				// {
+				// 	this.TextBox.activeBox.fadeIn +=0.25;
+				// }else
+				// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
+				// {
+				// 	this.TextBox.activeBox.fadeIn -=0.25;
+				// }
+				// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
+				// 	this.TextBox.activeBox.fadeOut = false;
+
+				this.update();	
+			}
 		}
 		function interactionEntry(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 		{
-			var panel = this.proxyPanel.activepanel;
-			if(mouseDown !== null)
+			if(this.proxyPanel.activepanel.visible)
 			{
-				var e = mouseDown;
-				var mx = this.runtime.mx;
-				var my = this.runtime.my;
-				// set caret position
-				// assume drag over point
+				var panel = this.proxyPanel.activepanel;
+				if(mouseDown !== null)
+				{
+					var e = mouseDown;
+					var mx = this.runtime.mx;
+					var my = this.runtime.my;
+					// set caret position
+					// assume drag over point
 
-				if(hittestrect(panel.x, panel.y, panel.w, panel.h, mx, my))		
-					for (var i = 0; i < panel.bindings.length; i++) {
-						var proxy = panel.bindings[i].proxy;
-						proxy.focus = hittestrect(proxy.x, proxy.y, proxy.w, proxy.h, mx, my);
-					}	
+					if(hittestrect(panel.x, panel.y, panel.w, panel.h, mx, my))		
+						for (var i = 0; i < panel.bindings.length; i++) {
+							var proxy = panel.bindings[i].proxy;
+							proxy.focus = hittestrect(proxy.x, proxy.y, proxy.w, proxy.h, mx, my);
+						}	
 
-			}
+				}
 
-			for (var i = 0; i < panel.bindings.length; i++) {
-				var proxy = panel.bindings[i].proxy;
-				if(typeof proxy.interaction !== "undefined" && this.isFunction(proxy.interaction))
-					proxy.interaction(this,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove);
-			}		
+				for (var i = 0; i < panel.bindings.length; i++) {
+					var proxy = panel.bindings[i].proxy;
+					if(typeof proxy.interaction !== "undefined" && this.isFunction(proxy.interaction))
+						proxy.interaction(this,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove);
+				}	
+			}	
 		}
-		function FadeIn()
+		function FadeIn(trs)
 		{
-			this.visibility = true;
+			this.visible = true;
+			trs.update();
 		}
-		function FadeOut()
+		function FadeOut(trs)
 		{
-			this.visibility = false;
+			this.visible = false;
+			for (var i = 0; i < this.bindings.length; i++) {
+				var proxy = this.bindings[i].proxy;
+				proxy.focus = proxy.hover = false;
+			}	
+			trs.update();
 		}
 		function getControl(trs, name, text)
 		{
@@ -1844,7 +1911,7 @@ truss_o.say();
 		function RenderProxyPanels()
 		{
 			var panel = this.proxyPanel.activepanel;
-			if(panel.visibility){
+			if(panel.visible){
 				this.context.fillStyle = "rgba(37, 51, 62, .8)";
 				this.context.fillRect(panel.x, panel.y, panel.w, panel.h);
 
@@ -1860,7 +1927,7 @@ truss_o.say();
 		{
 			var ap = this.proxyPanel.activepanel;
 			ap.bindings.push({refName: refControlName, positionAndSize: positionAndSize, 
-				relativePos: relativePos, visibility: visibility,
+				relativePos: relativePos, visible: visibility,
 				interaction: interaction, focus: focus});
 		}
 		function hittestrect(x,y,w,h,hitX,hitY) {
@@ -1915,10 +1982,10 @@ truss_o.say();
 				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
 				{x:-14, y: 2+14 +2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
-			pp.addTextBox(trs, "label", "left caption", "text", false, null, 
+			pp.addTextBox(trs, "label", "left caption", "text", false, editAccepted, 
 				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
-			pp.addTextBox(trs, "label2", "right text", "text2", true, null, 
+			pp.addTextBox(trs, "label2", "right text", "text2", true, editAccepted, 
 				{x: 8, y: 22+16+22, right: -2, bottom: 120, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
 			
 			var btnOk = pp.addButton(trs, "bok", "\uf120", null, "18px Ionicons", 20,
@@ -2010,7 +2077,7 @@ truss_o.say();
 		trs.EditPanel.getControl(trs, "label2").setText(txt2||"");
 		trs.EditPanel.getControl(trs, "bok").callback = function(){editAccepted.call(trs, "OK");}
 		trs.EditPanel.getControl(trs, "bc").callback = function(){editAccepted.call(trs, "Cancel");}
-		trs.EditPanel.Show();
+		trs.EditPanel.Show(trs);
 		// trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
 		trs.PushEvent("nodeEditStart", trs.editTextNode);
 	}
@@ -2071,12 +2138,12 @@ truss_o.say();
 			this.objects[this.editTextNode].labelRight = this.EditPanel.getControl(this, "label2").getText();
 			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label, this.objects[this.editTextNode].labelRight]);
 			// this.TextBoxHide();
-			this.EditPanel.Hide();
+			this.EditPanel.Hide(this);
 			this.editTextNode = -1;
 		}else{
 			this.PushEvent("nodeEditDecline", this.editTextNode);
 			// this.TextBoxHide();
-			this.EditPanel.Hide();
+			this.EditPanel.Hide(this);
 			this.editTextNode = -1;
 		}
 	}
@@ -2164,7 +2231,7 @@ truss_o.say();
 				}
 
 			} else if(this.editTextNode===-1) {
-				if(this.selectedNode >= 0)
+				if(this.selectedNode >= 0 || this.objects.length === 0)
 				{
 					this.ShowMenu("node", mx, my);
 				}else{
@@ -2322,7 +2389,7 @@ truss_o.say();
 		trs.TextBoxGetSelectedText = getSelectedText;
 
 		// trs.TextBoxRender = drawTextBox;
-		trs.CreateTimer(1000/30, shHideCaretAndFade);
+
 	}
 	function renderTextBox(trs)
 	{
@@ -2342,7 +2409,7 @@ truss_o.say();
 				textwidth: 0, textheight: 0,
 				render: renderTextBox, setText: setText, getText: getText,
 				// caption: caption, font: font, fontheight: fontheight, callback: callback,
-				
+				acceptedOrDeclined: acceptedOrDeclined,
 				caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
 		 		state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: -1,
 		 		label: label, multiline: ismultiline, 
@@ -2364,50 +2431,25 @@ truss_o.say();
 
 	function setText(text)
 	{
-		this.lines.length = 1;
-		this.lines[0] = {t: text, w: 0, davw: 0, y: 0};
+		var tlines = text.split("\n"); 
+		this.lines.length = tlines.length;
+		//this.lines[0] = {t: text, w: 0, davw: 0, y: 0};
+		for (var i = 0; i < tlines.length; i++) {
+			this.lines[i] = {t: tlines[i], w: 0, davw: 0, y: 0};
+		};
 		this.measured = false;
-		this.scrollx = this.scrolly = this.caretIndex = this.caretLine = 0;
+		this.scrollx = this.scrolly = this.caretIndex = this.caretLine = this.caretPositionX = 0;
 		this.text = text;
 	}
 	function getText()
 	{
 		var result = "";
 		for (var i = 0; i < this.lines.length; i++) {
-			result += this.lines[i].t;
+			result += this.lines[i].t + (i+1< this.lines.length?"\n":"");
 		};
 		return result;
 	}
-	function shHideCaretAndFade()
-	{
-		// if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
-		{
-			var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
 
-			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep * mod;
-			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay >= 1)
-			{
-				
-				// var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
-				if(this.TextBox.activeBox.caretOnDisplay < 0)
-					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = 1;//mod;
-				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = -1;//mod * -1;
-
-			}
-			// if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
-			// {
-			// 	this.TextBox.activeBox.fadeIn +=0.25;
-			// }else
-			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
-			// {
-			// 	this.TextBox.activeBox.fadeIn -=0.25;
-			// }
-			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
-			// 	this.TextBox.activeBox.fadeOut = false;
-
-			this.update();	
-		}
-	}
 	var ignoreCodes = [95,93,125,123,91,160,171,92,8230,187];
 	function interactionInput(trs,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 	{
@@ -3399,7 +3441,9 @@ truss_o.say();
 		  				this.AABBboundsUpdate(tx, tx+dim.width, ty, ty+12);
 		  			}
 		  			if(this.objects[i].labelRight !== undefined){
-		  				var dim = this.context.measureText(this.objects[i].labelRight);
+		  				var lrtext = this.objects[i].labelRight;
+		  				lrtext = lrtext.length > 21 ? lrtext.substr(0,18)+"...":lrtext;
+		  				var dim = this.context.measureText(lrtext);
 		  				var tx = this.objects[i].x+this.options.view.node.radius+ 4;
 		  				var ty = this.objects[i].y+this.options.view.node.radius*.5;
 
@@ -3407,7 +3451,7 @@ truss_o.say();
 		  				this.context.fillRect(tx,ty-10,dim.width, 12)
 
 						this.context.fillStyle = "rgb(255, 255, 255)";
-		  				this.context.fillText(this.objects[i].labelRight, tx, ty);
+		  				this.context.fillText(lrtext, tx, ty);
 		  				this.AABBboundsUpdate(tx, tx + dim.width, ty-10 ,ty + 12);
 		  			}
 				}

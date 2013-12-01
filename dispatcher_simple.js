@@ -17,7 +17,7 @@
 				if(typeof data !== 'undefined' && data>=0)
 				{
 					index = this.AddObject(name, this.objects[data].x+2, this.objects[data].y+45, prot);
-					var gxy = guessNxy(this, data);
+					var gxy = guessNxy(this, data, index);
 					if(typeof gxy !== 'undefined')
 					{
 						this.PushEvent("moved", [index, gxy.x, gxy.y]);
@@ -102,16 +102,27 @@
 			break;
 		}
 	}
-	function guessNxy(trs, parentIndex)
+	function guessNxy(trs, parentIndex, cindex)
 	{
 		var obj = trs.objects[parentIndex];
 		var parents = trs.ConnectedTo(parentIndex);
-		
+		var childs = trs.ConnectedFrom(parentIndex);
+		if(childs.length > 1)
+		{
+			var idx = 0;
+			if(childs[0] === cindex)
+				idx = childs[1];
+			else idx = childs[0];
+			var child = trs.objects[idx];
+			var dx = child.x-obj.x +21;
+			var dy = child.y-obj.y +11;
+			return {x:dx+obj.x, y:dy+obj.y};
+		}
 		if(parents.length === 1)
 		{
 			var parentOfParent = trs.objects[parents[0]];
-			dx = obj.x-parentOfParent.x;
-			dy = obj.y-parentOfParent.y;
+			var dx = obj.x-parentOfParent.x;
+			var dy = obj.y-parentOfParent.y;
 			return {x:dx+obj.x, y:dy+obj.y};
 		}
 		// return undefined;

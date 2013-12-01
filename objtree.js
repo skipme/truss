@@ -15,6 +15,7 @@
 		trs.separateIfOneConnection = separateIfOneConnection;
 		trs.RemoveObject = RemoveNode;
 		trs.ConnectedTo = ConnectedTo;
+		trs.ConnectedFrom = ConnectedFrom;
 
 		trs.runtime.temporaryConnection = false;
 		trs.runtime.connectFrom = -1;
@@ -249,6 +250,17 @@
 			}
 		};
 		return parents;	
+	}
+	function ConnectedFrom(index)
+	{
+		var childs = [];
+		for (var i = 0; i < this.conIndexes.length; i++) {
+			if(this.conIndexes[i][0] === index)
+			{
+				childs.push(this.conIndexes[i][1]);
+			}
+		};
+		return childs;	
 	}
 	truss_o.extendModule(Tree, "objects.Tree", ["core.Events", "core.runtime"]);
 }());
