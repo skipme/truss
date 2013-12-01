@@ -31,7 +31,7 @@
 			//f12e doc text
 			//f120 - ok
 			//f128 - cancel
-			trs.loadFont("Ionicons", "fonts/ionicons.woff?v=1.3.5");
+			trs.loadFont("Ionicons", ["/content/fonts/ionicons.woff?v=1.3.5", "fonts/ionicons.woff?v=1.3.5"]);
 			pp.addButton(trs, "test", "\uf12e", null, "12px Ionicons", 12,
 				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
 			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
@@ -50,7 +50,7 @@
 			btnCancel.proxy.hovercolor = "rgb(255, 40, 187)";
 			btnOk.proxy.drawbackground = false;
 			btnCancel.proxy.drawbackground = false;
-			
+
 			trs.EditPanel = pp;
 		//
 		trs.DeltasMeasuring = [];

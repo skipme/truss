@@ -228,9 +228,10 @@ var truss_o;
 		var thisFrameFPS = 1000.0 / (trs.fps.now - trs.fps.lastUpdate);
 		if(isNaN(thisFrameFPS))
 			thisFrameFPS = 0.1;
+
+  		trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
 		if(isNaN(trs.fps.rate))
 			trs.fps.rate = 0.1;
-  		trs.fps.rate += (thisFrameFPS - trs.fps.rate) / fpsFilter;
   		//if(trs.fps.rate)
   		trs.fps.lastUpdate = trs.fps.now;
   			
@@ -279,6 +280,91 @@ var truss_o;
 		this.invokeEvent('update');
 	}
 	truss_o.extendModule(cAnimate, "core.Animate", ["core.Events", "core.runtime"]);
+}());// "button.js"
+(function(){
+		function vButton(trs){
+			trs.Button = {
+				buttons: [
+				{
+					x:0, y: 0, w: 0, h: 0, 
+					visible: 1, interaction: interactionInput, focus: 0, hover: false, switched: false, 
+					render: renderButton,
+					caption: "OK", font: "12px Verdana", fontheight: 12 
+				}],
+				buttonNames: []
+			}; 
+			trs.addButton = addButton;
+		}
+		function setTextParams(trs, button)
+		{
+			//trs.SetShadow();
+			trs.context.font = button.font;
+			trs.context.textBaseline = "bottom";// "top";
+			trs.context.textAlign = 'start';
+			if(button.hover)
+				trs.SetShadow(0,0,4, button.hovercolor);//trs.SetShadow(0,0,4,"rgb(255, 187, 40)");
+			else 
+				trs.SetShadow();
+
+			trs.context.fillStyle = button.hover?"rgba(255, 255, 255, 1)" :"rgba(111, 111, 111, 1)";//"rgb(0, 0, 0)";
+		}
+		function renderButton(trs)
+		{
+			var button = this;
+			trs.SetShadow();
+			// var colour = 
+		// 'hsla(' + Math.round(Math.random() * 360) + ', 80%, 60%'+ ',0.7)';
+			if(button.drawbackground){
+				trs.context.fillStyle =  "rgba(37, 51, 62, .8)";//"rgba(255, 187, 40, 1)";//"rgba(255, 255, 255, 0.6)";
+				trs.context.fillRect(button.x, button.y, button.w, button.h);
+			}
+			setTextParams(trs, button);
+			trs.context.fillText(button.caption, button.x + 2, button.y + button.h - 2);
+
+			trs.SetShadow();
+		}
+		function interactionInput(trs,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
+		{
+			if(mouseMove !== null)
+			{
+				var e = mouseMove;
+				var mx = trs.runtime.mx;
+				var my = trs.runtime.my;
+
+				if(this.hover = hittestrect(this.x, this.y, this.w, this.h, mx, my))
+				{ 
+					trs.setCursor("pointer")
+				}
+			}else if (mouseUp !== null)
+			{
+				var e = mouseUp;
+				var mx = trs.runtime.mx;
+				var my = trs.runtime.my;
+
+				if(hittestrect(this.x, this.y, this.w, this.h, mx, my))
+				{ 
+					if(typeof this.callback !== "undefined" && trs.isFunction(this.callback))
+						this.callback.call();
+				}
+			}
+		}
+		function hittestrect(x,y,w,h,hitX,hitY) {
+			return(x<hitX&&x+w>=hitX&&y<hitY&&y+h>=hitY);
+		}
+		function addButton(name, caption, font, fontheight, callback)
+		{
+			this.Button.buttonNames[name] = this.Button.buttons.length;
+			var button = {
+					x:0, y: 0, w: 0, h: 0, 
+					visible: 1, interaction: interactionInput, focus: 0, hover: false, switched: false, 
+					hovercolor: "rgb(40, 187, 255)", drawbackground: true,
+					render: renderButton,
+					caption: caption, font: font, fontheight: fontheight, callback: callback
+			};
+			this.Button.buttons.push(button);
+			return button;
+		}
+		truss_o.extendModule(vButton, "view.Button", ["view.Interface", "core.runtime"]);
 }());// "cmenu.js"
 (function(){
 	function cMenu(trs){
@@ -951,6 +1037,38 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
 	context.putImageData( imageData, top_x, top_y );
 	
 }
+}());// "fonts.js"
+(function(){
+		function vFonts(trs){
+			trs.fonts = {
+				familys: []
+			}; 
+			trs.loadFont = loadFont;
+		}
+		function loadFont(name, src)
+		{
+			if(this.fonts.familys.indexOf(name)>=0)
+				return name;
+
+			var newStyle = document.createElement('style');
+			var srcS = "src: ";
+			for (var i = 0; i < src.length; i++) {
+				srcS += (i>0?",":"") + "url(\"" + src[i] + "\") format(\"woff\")\n";
+			};
+			newStyle.appendChild(document.createTextNode(" \
+			@font-face { \
+  font-family: \""+ name +"\"; \
+  "+srcS+"; \
+  font-weight: normal; \
+  font-style: normal; } \
+			"));
+			// src: url(\""+src+"\") format(\"woff\"); \
+			document.head.appendChild(newStyle);
+			this.fonts.familys.push(name);
+			
+			return name;
+		}
+		truss_o.extendModule(vFonts, "view.Fonts", ["view.Interface", "core.runtime"]);
 }());// "history.js"
 // "image.js"
 (function(){
@@ -1220,7 +1338,7 @@ function boxBlurCanvasRGB( context, top_x, top_y, width, height, radius, iterati
                     radius,
                     radius
                     );
-		colour = 
+		var colour = 
 		'hsla(' + Math.round(Math.random() * 360) + ', 80%, 60%';
 		// grad.addColorStop(0, 'rgba(255,255,255, 1)');
   //       grad.addColorStop(1, 'rgba(255,255,255, 0)');
@@ -1599,7 +1717,157 @@ truss_o.say();
 	truss_o.extendModule(Tree, "objects.Tree", ["core.Events", "core.runtime"]);
 }());
 
-// "runtime.js"
+// "proxypanel.js"
+(function(){
+		function vPanel(trs){
+			trs.proxyPanel = { activepanel: {
+				x: 0, y: 0, w: 0, h: 0,
+				visibility: false,
+				bindings: [
+					{refName: 'i', relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, proxy: {}}
+				],
+				addTextBox: addTextBox, addButton: addButton, getControl: getControl,
+				Show: FadeIn, Hide: FadeOut
+				},
+			};
+			trs.RenderProxyPanels = RenderProxyPanels;
+			trs.showProxyPanel = showProxyPanel;
+			trs.ProxyPanelInteractionEntry = interactionEntry;
+		}
+		function interactionEntry(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
+		{
+			var panel = this.proxyPanel.activepanel;
+			if(mouseDown !== null)
+			{
+				var e = mouseDown;
+				var mx = this.runtime.mx;
+				var my = this.runtime.my;
+				// set caret position
+				// assume drag over point
+
+				if(hittestrect(panel.x, panel.y, panel.w, panel.h, mx, my))		
+					for (var i = 0; i < panel.bindings.length; i++) {
+						var proxy = panel.bindings[i].proxy;
+						proxy.focus = hittestrect(proxy.x, proxy.y, proxy.w, proxy.h, mx, my);
+					}	
+
+			}
+
+			for (var i = 0; i < panel.bindings.length; i++) {
+				var proxy = panel.bindings[i].proxy;
+				if(typeof proxy.interaction !== "undefined" && this.isFunction(proxy.interaction))
+					proxy.interaction(this,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove);
+			}		
+		}
+		function FadeIn()
+		{
+			this.visibility = true;
+		}
+		function FadeOut()
+		{
+			this.visibility = false;
+		}
+		function getControl(trs, name, text)
+		{
+			for (var i = 0; i < this.bindings.length; i++) {
+				if(this.bindings[i].refName === name)
+					return this.bindings[i].proxy;
+			};
+			return null;
+		}
+		function addTextBox(trs, name, label, text, ismultiline, acceptedOrDeclined, relativity)
+		{
+			var textbox = trs.AddTextBox(label, text, ismultiline, acceptedOrDeclined);
+			var incapsulated = {refName: name, relative: relativity, proxy: textbox};
+			this.bindings.push(incapsulated);
+			updateRelativitys(trs, this);
+			return incapsulated;
+		}
+		function addButton(trs, name, caption, callback, font, fontheight, relativity)
+		{
+			var button = trs.addButton(name, caption, font, fontheight, callback);
+			var incapsulated = {refName: name, relative: relativity, proxy: button};
+			this.bindings.push(incapsulated);
+			updateRelativitys(trs, this);
+			return incapsulated;
+		}
+		function showProxyPanel(x,y,w,h)
+		{
+			// set childs visibility: 1
+			// update relativitys
+			x = this.bounds.width - w - 4; 
+			this.proxyPanel.activepanel.x = x;
+			this.proxyPanel.activepanel.y = y;
+			this.proxyPanel.activepanel.w = w;
+			this.proxyPanel.activepanel.h = h;
+
+			updateRelativitys(this, this.proxyPanel.activepanel);
+			return this.proxyPanel.activepanel;
+		}
+		function updateRelativitys(trs, panel)
+		{
+			for (var i = 0; i < panel.bindings.length; i++) {
+				var proxy = panel.bindings[i].proxy;
+				var rules = panel.bindings[i].relative;
+				proxy.x = updateProxyByRules(panel, rules.x, rules.xrule);
+				proxy.y = updateProxyByRules(panel, rules.y, rules.yrule);
+
+				proxy.w = (rules.rrule==="abs" ? rules.right : updateProxyByRules(panel, rules.right, rules.rrule)-proxy.x);
+				proxy.h = (rules.brule==="abs" ? rules.bottom : updateProxyByRules(panel, rules.bottom, rules.brule)-proxy.y);
+			};
+		}
+		function updateProxyByRules(panel, val, rule)
+		{
+			switch(rule)
+			{
+				case "left":
+					return panel.x + val; 
+				break;
+				case "top":
+					return panel.y + val; 
+				break;
+				case "right":
+					return panel.x + panel.w + val; 
+				break;
+				case "bottom":
+					return panel.y + panel.h + val; 
+				break;
+				case "absx":
+					return proxy.x + val; 
+				break;
+
+				default:
+					throw "unexpected relative rule for child control: "+ rule
+				break;
+			}
+		}
+		function RenderProxyPanels()
+		{
+			var panel = this.proxyPanel.activepanel;
+			if(panel.visibility){
+				this.context.fillStyle = "rgba(37, 51, 62, .8)";
+				this.context.fillRect(panel.x, panel.y, panel.w, panel.h);
+
+				for (var i = 0; i < panel.bindings.length; i++) {
+					var proxy = panel.bindings[i].proxy;
+					if(typeof proxy.render !== "undefined" && this.isFunction(proxy.render))
+						proxy.render(this);
+				}
+			}
+		}
+		// all refrence objects, but interaction is function
+		function addBinding(refControlName, positionAndSize, relativePos, visibility, interaction, focus)
+		{
+			var ap = this.proxyPanel.activepanel;
+			ap.bindings.push({refName: refControlName, positionAndSize: positionAndSize, 
+				relativePos: relativePos, visibility: visibility,
+				interaction: interaction, focus: focus});
+		}
+		function hittestrect(x,y,w,h,hitX,hitY) {
+			return(x<hitX&&x+w>=hitX&&y<hitY&&y+h>=hitY);
+		}
+		truss_o.extendModule(vPanel, "view.ProxyPanel", ["view.Interface", "core.runtime", "view.Button", "view.TextBox"]);
+}());// "runtime.js"
 
 (function(){
 	//"use strict";
@@ -1636,6 +1904,33 @@ truss_o.say();
 			{text:'play intro video', callback:undefined},
 			{text:'play all history', callback:undefined},
 			]});
+		// panel and buttons and textbox
+			var pp = trs.showProxyPanel(25,60,164,212);
+			//f25b waterdrop
+			//f12e doc text
+			//f120 - ok
+			//f128 - cancel
+			trs.loadFont("Ionicons", ["/content/fonts/ionicons.woff?v=1.3.5", "fonts/ionicons.woff?v=1.3.5"]);
+			pp.addButton(trs, "test", "\uf12e", null, "12px Ionicons", 12,
+				{x:-14, y: 2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
+			pp.addButton(trs, "test2", "\uf25b", null, "12px Ionicons", 12,
+				{x:-14, y: 2+14 +2, right: 0, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'});
+			pp.addTextBox(trs, "label", "left caption", "text", false, null, 
+				{x: 8, y: 22, right: -2, bottom: 14, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
+			
+			pp.addTextBox(trs, "label2", "right text", "text2", true, null, 
+				{x: 8, y: 22+16+22, right: -2, bottom: 120, xrule: 'left', yrule: 'top', rrule: 'right', brule: 'abs'});
+			
+			var btnOk = pp.addButton(trs, "bok", "\uf120", null, "18px Ionicons", 20,
+				{x: 8, y: 22+16+22+120+4, right: 24, bottom: 24, xrule: 'left', yrule: 'top', rrule: 'abs', brule: 'abs'});
+			var btnCancel = pp.addButton(trs, "bc", "\uf128", null, "18px Ionicons", 20,
+				{x: 8+24+4, y: 22+16+22+120+4, right: 24, bottom: 24, xrule: 'left', yrule: 'top', rrule: 'abs', brule: 'abs'});
+			btnOk.proxy.hovercolor = "rgb(40, 255, 187)";
+			btnCancel.proxy.hovercolor = "rgb(255, 40, 187)";
+			btnOk.proxy.drawbackground = false;
+			btnCancel.proxy.drawbackground = false;
+
+			trs.EditPanel = pp;
 		//
 		trs.DeltasMeasuring = [];
 
@@ -1709,8 +2004,14 @@ truss_o.say();
 	{
 		trs.editTextNode = trs.selectedNode;
 		var txt = trs.objects[trs.editTextNode].label;
-		txt = txt||"";
-		trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
+		var txt2= trs.objects[trs.editTextNode].labelRight;
+
+		trs.EditPanel.getControl(trs, "label").setText(txt||"");
+		trs.EditPanel.getControl(trs, "label2").setText(txt2||"");
+		trs.EditPanel.getControl(trs, "bok").callback = function(){editAccepted.call(trs, "OK");}
+		trs.EditPanel.getControl(trs, "bc").callback = function(){editAccepted.call(trs, "Cancel");}
+		trs.EditPanel.Show();
+		// trs.TextBoxShow("right", 250, "left Caption", txt, false, editAccepted);
 		trs.PushEvent("nodeEditStart", trs.editTextNode);
 	}
 	function dkeypress(e)
@@ -1720,7 +2021,8 @@ truss_o.say();
 		{
 			showTextBoxForSelectedNode(this);
 		}else{
-			this.TextBoxInteractionInput(e,null,null,null,null);
+			this.ProxyPanelInteractionEntry(e,null,null,null,null);
+			//this.TextBoxInteractionInput(e,null,null,null,null);
 		}
 		e.preventDefault();
 	}
@@ -1729,7 +2031,7 @@ truss_o.say();
 		if(this.editTextNode === -1
 			&& e.keyCode === 13 && this.selectedNode >= 0)// enter pressed on selected node
 		{
-			showTextBoxForSelectedNode(this);
+			//showTextBoxForSelectedNode(this);
 			e.preventDefault();
 		}else
 		if(e.keyCode === 13 || e.keyCode === 8
@@ -1737,7 +2039,8 @@ truss_o.say();
 			|| e.keyCode === 40|| e.keyCode === 38
 			|| e.keyCode === 46|| e.keyCode === 27)
 		{
-			this.TextBoxInteractionInput(e,null,null,null,null);
+			//this.TextBoxInteractionInput(e,null,null,null,null);
+			this.ProxyPanelInteractionEntry(e,null,null,null,null);
 			e.preventDefault();
 		}
 	}
@@ -1764,13 +2067,16 @@ truss_o.say();
 	{
 		if(result === "OK")
 		{
-			this.objects[this.editTextNode].label = this.TextBoxTextGet();
-			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label]);
-			this.TextBoxHide();
+			this.objects[this.editTextNode].label = this.EditPanel.getControl(this, "label").getText();
+			this.objects[this.editTextNode].labelRight = this.EditPanel.getControl(this, "label2").getText();
+			this.PushEvent("nodeEditAccept", [this.editTextNode, this.objects[this.editTextNode].label, this.objects[this.editTextNode].labelRight]);
+			// this.TextBoxHide();
+			this.EditPanel.Hide();
 			this.editTextNode = -1;
 		}else{
 			this.PushEvent("nodeEditDecline", this.editTextNode);
-			this.TextBoxHide();
+			// this.TextBoxHide();
+			this.EditPanel.Hide();
 			this.editTextNode = -1;
 		}
 	}
@@ -1794,6 +2100,8 @@ truss_o.say();
 
 			this.runtime.mx = mx;
 			this.runtime.my = my;
+
+			this.ProxyPanelInteractionEntry(null,null, e,null,null);
 
 			if(this.menu.displayMenu)
 			{
@@ -1892,8 +2200,9 @@ truss_o.say();
 				//console.log("dragging off", e);
 			}
 		}
-		this.TextBoxInteractionInput(null,null,
-			null,e,null);
+		// this.TextBoxInteractionInput(null,null,
+		// 	null,e,null);
+		this.ProxyPanelInteractionEntry(null,null,null,e,null);
 		e.preventDefault();
 	}
 	function mmove(e)
@@ -1931,8 +2240,9 @@ truss_o.say();
 				this.update();
 		}
 		this.processInteractionMMove(mx, my);
-		this.TextBoxInteractionInput(null,null,
-			null,null,e);
+		// this.TextBoxInteractionInput(null,null,
+		// 	null,null,e);
+		this.ProxyPanelInteractionEntry(null,null, null,null,e);
 		this.acceptSetCursor(false);// assume only mouse move event can change cursor style
 		e.preventDefault()
 	}
@@ -1984,32 +2294,65 @@ truss_o.say();
 			}
 		}
 	}
-	truss_o.extendModule(cStructure, "view.Structure", ["view.Input", "core.Events", "core.Animate", "objects.Tree", "view.Interface", "view.Menu"]);
+	truss_o.extendModule(cStructure, "view.Structure", ["view.Input", "core.Events", "core.Animate", "objects.Tree", "view.Interface", "view.Menu", "view.ProxyPanel"]);
 }());// "textbox.js"
 (function(){
 
 	function cTextBox(trs){
 		trs.TextBox = { x: 0, y: 0, width: 128, height: 14, isOnDisplay: false, activeBox:
-		 {multiline: false, label: "nolabel",
-		 	caretOnDisplay: 0.1, caretOnDisplayAlphaIncStep: 3*1.0/30, caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
+		 {
+		 	multiline: false, label: "nolabel",
+		 	caretOnDisplay: 0.1, caretOnDisplayAlphaIncStep: 3*1.0/30, caretSETupDownX: 0, caretPositionX: 0,
 		 	state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: 0,
 		 	text: "first line", lines: 
 		 	[{t: "first line", w: 0, davw: 0, y: 0}, {t: "second line", w: 0, davw: 0, y: 0}, 
 		 	{t: "x", w: 0, davw: 0, y: 0}, {t: "xu", w: 0, davw: 0, y: 0}
 		 	], 
-		 	fadeIn: 0, fadeOut: false
-		  }
-		 };
+		 	fadeIn: 1, fadeOut: false
+		  },
+		  textboxes: [
+		  ]
+		};
 
-		trs.TextBoxShow = showTextBox;
-		trs.TextBoxHide = hideTextBox;
-		trs.TextBoxTextGet = GetText;
+		trs.AddTextBox = AddTextBox;
+		// trs.TextBoxShow = showTextBox;
+		// trs.TextBoxHide = hideTextBox;
+		// trs.TextBoxTextGet = GetText;
 		trs.TextBoxInteractionInput = interactionInput;
 		trs.TextBoxGetSelectedText = getSelectedText;
 
-		trs.TextBoxRender = drawTextBox;
+		// trs.TextBoxRender = drawTextBox;
 		trs.CreateTimer(1000/30, shHideCaretAndFade);
 	}
+	function renderTextBox(trs)
+	{
+		trs.SetShadow();
+		if(!this.measured)
+			drawTextBoxText(trs, this, true);
+		drawTextBoxBackground(trs, this);
+		drawTextBoxText(trs, this, false);
+	}
+	function AddTextBox(label, text, ismultiline, acceptedOrDeclined)
+	{
+		var textbox = {
+				x:0, y: 0, w: 0, h: 0, 
+				visible: 1, interaction: interactionInput, focus: false,
+				fonth: 13,
+				scrollx: 0, scrolly: 0, scrollchunkyh: 0, scrollchunkxw: 0, scrollchunkyy: 0, scrollchunkxx: 0,
+				textwidth: 0, textheight: 0,
+				render: renderTextBox, setText: setText, getText: getText,
+				// caption: caption, font: font, fontheight: fontheight, callback: callback,
+				
+				caretSETupDownX: 0, caretPositionX: 0, caretPositionY: 0, 
+		 		state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: -1,
+		 		label: label, multiline: ismultiline, 
+		 		text: "first line", lines: [{t: text, w: 0, davw: 0, y: 0}]
+			};
+		// hitCursorToCaret(this, textbox, 0, 0, 0);
+		this.TextBox.textboxes.push(textbox);
+		return textbox;
+	}
+				
 	function GetText()
 	{
 		var result = "";
@@ -2018,269 +2361,312 @@ truss_o.say();
 		};
 		return result;
 	}
+
+	function setText(text)
+	{
+		this.lines.length = 1;
+		this.lines[0] = {t: text, w: 0, davw: 0, y: 0};
+		this.measured = false;
+		this.scrollx = this.scrolly = this.caretIndex = this.caretLine = 0;
+		this.text = text;
+	}
+	function getText()
+	{
+		var result = "";
+		for (var i = 0; i < this.lines.length; i++) {
+			result += this.lines[i].t;
+		};
+		return result;
+	}
 	function shHideCaretAndFade()
 	{
-		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+		// if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
 		{
-			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep;
-			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay > 1)
-			{
-				var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
+			var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
 
+			this.TextBox.activeBox.caretOnDisplay += this.TextBox.activeBox.caretOnDisplayAlphaIncStep * mod;
+			if(this.TextBox.activeBox.caretOnDisplay < 0 || this.TextBox.activeBox.caretOnDisplay >= 1)
+			{
+				
+				// var mod =3*1.0/(30/(60/(this.fps.rate>60?60:this.fps.rate)));
 				if(this.TextBox.activeBox.caretOnDisplay < 0)
-					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod;
-				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = mod * -1;
+					this.TextBox.activeBox.caretOnDisplayAlphaIncStep = 1;//mod;
+				else this.TextBox.activeBox.caretOnDisplayAlphaIncStep = -1;//mod * -1;
 
 			}
-			if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
-			{
-				this.TextBox.activeBox.fadeIn +=0.25;
-			}else
-			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
-			{
-				this.TextBox.activeBox.fadeIn -=0.25;
-			}
-			if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
-				this.TextBox.activeBox.fadeOut = false;
+			// if(!this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn < 1.0)
+			// {
+			// 	this.TextBox.activeBox.fadeIn +=0.25;
+			// }else
+			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn > 0.0)
+			// {
+			// 	this.TextBox.activeBox.fadeIn -=0.25;
+			// }
+			// if(this.TextBox.activeBox.fadeOut && this.TextBox.activeBox.fadeIn <=0)
+			// 	this.TextBox.activeBox.fadeOut = false;
 
 			this.update();	
 		}
 	}
 	var ignoreCodes = [95,93,125,123,91,160,171,92,8230,187];
-	function interactionInput(keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
+	function interactionInput(trs,keyboardDownEvent, keyboardUpEvent, mouseDown, mouseUp, mouseMove)
 	{
-		if(!this.TextBox.isOnDisplay)
-			return;
-		var acb = this.TextBox.activeBox;
+		// if(!this.TextBox.isOnDisplay)
+		// 	return;
+		//var acb = this.TextBox.activeBox;
 		if(mouseMove !== null)
 		{
 			var e = mouseMove;
-			var mx = this.runtime.mx;
-			var my = this.runtime.my;
+			var mx = trs.runtime.mx;
+			var my = trs.runtime.my;
 			var hit = false;
-			for (var i = 0; i < acb.lines.length; i++) {
-				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
+			for (var i = 0; i < this.lines.length; i++) {
+				if(hittestrect(this.x-4, this.lines[i].y, this.w, this.h, mx, my))
 				{ 
 					hit = true;
 					break;
 				}
-				if(!this.TextBox.multiline)
+				if(!this.multiline)
 					break;
 			};
 			if(hit)
 			{
-				this.setCursor("text")
+				trs.setCursor("text")
 			}
-		}else if(mouseUp !== null && mouseUp.which === 1)
-		{
-			var e = mouseUp;
-			var mx = this.runtime.mx;
-			var my = this.runtime.my;
-			// set caret position
-			// assume drag over point
-
-			setTextParams(this)
-			for (var i = 0; i < acb.lines.length; i++) {
-				if(hittestrect(this.TextBox.x-4, acb.lines[i].y, this.TextBox.width, 12, mx, my))
-				{ 
-					hitCursorToCaret(this, i, mx);
-					acb.caretSETupDownX = acb.caretPositionX;
-				}
-				if(!this.TextBox.multiline)
-					break;
-			};
-
-		}else if(keyboardDownEvent !== null){
-			var e = keyboardDownEvent;
-			if(e.keyCode === 8)// backspace
-			{ 
-				var str = acb.lines[acb.caretLine].t;
-
-				if(acb.caretIndex == -1)
+		}else if (this.focus)
+			{
+				if(mouseUp !== null && mouseUp.which === 1)
 				{
-					if(acb.caretLine > 0 && this.TextBox.multiline)
+					var e = mouseUp;
+					var mx = trs.runtime.mx + this.scrollx;
+					var my = trs.runtime.my + this.scrolly;
+					// set caret position
+					// assume drag over point
+
+					setTextParams(trs)
+					for (var i = 0; i < this.lines.length; i++) {
+						if(hittestrect(this.x-4, this.lines[i].y, this.w, 12, mx, my))
+						{ 
+							hitCursorToCaret(trs, this, i, mx-this.x);
+							this.caretSETupDownX = this.caretPositionX;
+						}
+						if(!this.multiline)
+							break;
+					};
+
+				}else if(keyboardDownEvent !== null){
+					var e = keyboardDownEvent;
+					if(e.keyCode === 8)// backspace
+					{ 
+						var str = this.lines[this.caretLine].t;
+
+						if(this.caretIndex == -1)
+						{
+							if(this.caretLine > 0 && this.multiline)
+							{
+								var cp  = this.lines[this.caretLine - 1].t.length-1;
+								this.lines[this.caretLine - 1].t = this.lines[this.caretLine - 1].t + str;
+								this.caretLine--; 
+								this.caretPositionY = this.lines[this.caretLine].y;
+								this.caretSETupDownX = this.caretPositionX = this.lines[this.caretLine].w;	
+								this.caretIndex=cp;
+								this.lines.splice(this.caretLine+1, 1);
+
+								scrolltoCaret(trs, this)
+
+								this.measured = false;
+							}
+						}else{
+							var newleft = str.substr(0, this.caretIndex);
+							setTextParams(trs)
+							var dim = trs.context.measureText(newleft);
+							this.lines[this.caretLine].t =  newleft + str.substr(this.caretIndex+1, str.length - this.caretIndex-1);
+							this.caretIndex--;
+							this.caretSETupDownX = this.caretPositionX = dim.width;
+							this.measured = false;
+							scrolltoCaret(trs, this)
+						}
+					}else if(e.keyCode === 37)// left arrow
 					{
-						var cp  = acb.lines[acb.caretLine - 1].t.length-1;
-						acb.lines[acb.caretLine - 1].t = acb.lines[acb.caretLine - 1].t + str;
-						acb.caretLine--; 
-						acb.caretPositionY = acb.lines[acb.caretLine].y;
-						acb.caretSETupDownX = acb.caretPositionX = acb.lines[acb.caretLine].w + this.TextBox.x;	
-						acb.caretIndex=cp;
-						this.TextBox.activeBox.measured = false;
-						acb.lines.splice(acb.caretLine+1, 1);
-					}
-				}else{
-					var newleft = str.substr(0, acb.caretIndex);
-					setTextParams(this)
-					var dim = this.context.measureText(newleft);
-					acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+1, str.length - acb.caretIndex-1);
-					acb.caretIndex--;
-					acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-					this.TextBox.activeBox.measured = false;
-				}
-			}else if(e.keyCode === 37)// left arrow
-			{
-				if(e.ctrlKey)
-				{
-					var letterscoped = false;
-					var ctrace = acb.caretIndex;
-					while(ctrace >= 0)
+						if(e.ctrlKey)
+						{
+							var letterscoped = false;
+							var ctrace = this.caretIndex;
+							while(ctrace >= 0)
+							{
+								var chc = this.lines[this.caretLine].t.charCodeAt(ctrace);
+		       					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
+		       					{
+		       						if(letterscoped){
+			       						this.caretIndex = ctrace; 
+			       						break;
+			       					}
+		       					}else{
+		       						if(!letterscoped)
+		       							letterscoped = true;
+		       					}
+								ctrace--;
+							}
+							if(ctrace === -1 && letterscoped)
+								this.caretIndex = -1;
+						}else{
+							this.caretIndex--;
+						}
+						if(this.caretIndex < -1)//clip
+							this.caretIndex = -1;
+						setTextParams(trs);
+						var dim = trs.context.measureText(this.lines[this.caretLine].t.substr(0, this.caretIndex+1));
+						this.caretSETupDownX = this.caretPositionX = dim.width;
+						scrolltoCaret(trs, this);
+
+					}else if(e.keyCode === 39)// right arrow
 					{
-						var chc = acb.lines[acb.caretLine].t.charCodeAt(ctrace);
-       					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
-       					{
-       						if(letterscoped){
-	       						acb.caretIndex = ctrace; 
-	       						break;
-	       					}
-       					}else{
-       						if(!letterscoped)
-       							letterscoped = true;
-       					}
-						ctrace--;
-					}
-					if(ctrace === -1 && letterscoped)
-						acb.caretIndex = -1;
-				}else{
-					acb.caretIndex--;
-				}
-				if(acb.caretIndex < -1)//clip
-					acb.caretIndex = -1;
-				setTextParams(this);
-				var dim = this.context.measureText(acb.lines[acb.caretLine].t.substr(0, acb.caretIndex+1));
-				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-			}else if(e.keyCode === 39)// right arrow
-			{
-				if(e.ctrlKey)
-				{
-					var letterscoped = false;
-					var nextword = false;
-					var ctrace = acb.caretIndex;
-					var tl = acb.lines[acb.caretLine].t.length;
-					while(ctrace < tl)
+						if(e.ctrlKey)
+						{
+							var letterscoped = false;
+							var nextword = false;
+							var ctrace = this.caretIndex;
+							var tl = this.lines[this.caretLine].t.length;
+							while(ctrace < tl)
+							{
+								var chc = this.lines[this.caretLine].t.charCodeAt(ctrace);
+		       					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
+		       					{
+		       						if(letterscoped)
+		       							nextword = true;
+		 
+		       					}else{
+		       						if(!letterscoped)
+		       							letterscoped = true;
+		       						else if(nextword)
+		       						{
+			       						this.caretIndex = ctrace-1; 
+			       						break;
+		       						}
+		       					}
+								ctrace++;
+							}
+							if(ctrace === tl && letterscoped)
+								this.caretIndex = tl - 1;
+						}else{
+							this.caretIndex++;
+						}
+
+						if(this.caretIndex > this.lines[this.caretLine].t.length)//clip
+							this.caretIndex = this.lines[this.caretLine].t.length - 1;
+						setTextParams(trs);
+						var dim = trs.context.measureText(this.lines[this.caretLine].t.substr(0, this.caretIndex+1));
+						this.caretSETupDownX = this.caretPositionX = dim.width;
+						scrolltoCaret(trs, this);
+
+					}else if(e.keyCode === 40)// down arrow
 					{
-						var chc = acb.lines[acb.caretLine].t.charCodeAt(ctrace);
-       					if(ignoreCodes.indexOf(chc) >= 0 || (chc <=64 && chc >= 0))
-       					{
-       						if(letterscoped)
-       							nextword = true;
- 
-       					}else{
-       						if(!letterscoped)
-       							letterscoped = true;
-       						else if(nextword)
-       						{
-	       						acb.caretIndex = ctrace-1; 
-	       						break;
-       						}
-       					}
-						ctrace++;
+						if(this.multiline)
+						{
+							this.caretLine++;
+							if(this.caretLine >= this.lines.length)
+								this.caretLine = this.lines.length - 1;
+
+							hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
+							scrolltoCaret(trs, this);
+
+						}
+					}else if(e.keyCode === 38)// up arrow
+					{
+						if(this.multiline)
+						{
+							this.caretLine--;
+							if(this.caretLine < 0)
+								this.caretLine = 0;
+							hitCursorToCaret(trs, this, this.caretLine, this.caretSETupDownX);
+							scrolltoCaret(trs, this);
+
+						}
+					}else if(e.keyCode === 46)// del/delete
+					{
+						var str = this.lines[this.caretLine].t;
+						if(str.length >= this.caretIndex+2)
+						{
+							var newleft = str.substr(0, this.caretIndex+1);
+
+							this.lines[this.caretLine].t =  newleft + str.substr(this.caretIndex+2, str.length - this.caretIndex-1);
+							this.measured = false;
+						}
+
+					}else if(e.keyCode == 27)
+					{
+						if(typeof this.acceptedOrDeclined !== "undefined" && trs.isFunction(this.acceptedOrDeclined))
+							this.acceptedOrDeclined.call(trs, "ESCAPE");
 					}
-					if(ctrace === tl && letterscoped)
-						acb.caretIndex = tl - 1;
-				}else{
-					acb.caretIndex++;
+					else if(e.keyCode === 13)// enter
+					{
+						// todo: accept input changes
+						if(this.multiline)
+						{
+							var str = this.lines[this.caretLine].t;
+							this.caretLine++;
+							if(this.caretLine > this.lines.length)
+								throw '';
+							var nly = (this.caretLine === 0 ? this.fonth: this.lines[this.caretLine-1].y+this.fonth);
+							if(this.caretLine === this.lines.length)
+								this.lines.push({t: "xu", w: 0, davw: 0, y: nly});
+							else this.lines.splice(this.caretLine, 0, {t: "xu", w: 0, davw: 0, y: nly});
+
+							this.lines[this.caretLine-1].t = str.substr(0, this.caretIndex+1);
+							this.lines[this.caretLine].t = str.substr(this.caretIndex+1, str.length-this.caretIndex-1);
+							this.caretIndex = -1;
+							this.caretPositionY = this.lines[this.caretLine-1].y+this.fonth;
+							this.caretSETupDownX = this.caretPositionX = 0;
+							this.measured = false;
+
+							this.textheight = nly - this.y;
+							scrolltoCaret(trs, this);
+						}else{
+							if(typeof this.acceptedOrDeclined !== "undefined" && trs.isFunction(this.acceptedOrDeclined))
+								this.acceptedOrDeclined.call(trs, "OK");
+						}
+					}else{
+						// input
+				        var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
+			      		var keychar = String.fromCharCode(key);
+
+			      		var str = this.lines[this.caretLine].t;
+			      		setTextParams(trs)
+			      		var dim = null;
+			      		if(this.caretIndex>=0)
+			      		{
+				      		var left = str.substr(0, this.caretIndex+1);
+							this.lines[this.caretLine].t = left+keychar+str.substr(this.caretIndex+1, str.length-this.caretIndex-1);
+							dim = trs.context.measureText(left+keychar);
+						}else{
+							this.lines[this.caretLine].t = keychar+str;
+							dim = trs.context.measureText(keychar);
+						}
+
+						this.caretSETupDownX = this.caretPositionX = dim.width;
+						this.measured = false;
+						this.caretIndex++;
+						scrolltoCaret(trs, this);
+						// console.log(keychar)
+					}
 				}
-
-				if(acb.caretIndex > acb.lines[acb.caretLine].t.length)//clip
-					acb.caretIndex = acb.lines[acb.caretLine].t.length - 1;
-				setTextParams(this);
-				var dim = this.context.measureText(acb.lines[acb.caretLine].t.substr(0, acb.caretIndex+1));
-				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-			}else if(e.keyCode === 40 && this.TextBox.multiline)// down arrow
-			{
-				acb.caretLine++;
-				if(acb.caretLine >= acb.lines.length)
-					acb.caretLine = acb.lines.length - 1;
-
-				hitCursorToCaret(this, acb.caretLine, acb.caretSETupDownX);
-
-			}else if(e.keyCode === 38 && this.TextBox.multiline)// up arrow
-			{
-				acb.caretLine--;
-				if(acb.caretLine < 0)
-					acb.caretLine = 0;
-				hitCursorToCaret(this, acb.caretLine, acb.caretSETupDownX);
-
-			}else if(e.keyCode === 46)// del/delete
-			{
-				var str = acb.lines[acb.caretLine].t;
-				if(str.length >= acb.caretIndex+2)
-				{
-					var newleft = str.substr(0, acb.caretIndex+1);
-
-					acb.lines[acb.caretLine].t =  newleft + str.substr(acb.caretIndex+2, str.length - acb.caretIndex-1);
-					this.TextBox.activeBox.measured = false;
-				}
-
-			}else if(e.keyCode == 27)
-			{
-				if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
-					acb.acceptedOrDeclined.call(this, "ESCAPE");
-			}
-			else if(e.keyCode === 13)// enter
-			{
-				// todo: accept input changes
-				if(this.TextBox.multiline)
-				{
-					var str = acb.lines[acb.caretLine].t;
-					acb.caretLine++;
-					if(acb.caretLine > acb.lines.length)
-						throw '';
-					if(acb.caretLine === acb.lines.length)
-						acb.lines.push({t: "xu", w: 0, davw: 0, y: 0});
-					else acb.lines.splice(acb.caretLine, 0, {t: "xu", w: 0, davw: 0, y: 0});
-
-					acb.lines[acb.caretLine-1].t = str.substr(0, acb.caretIndex+1);
-					acb.lines[acb.caretLine].t = str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
-					acb.caretIndex = -1;
-					acb.caretPositionY = acb.lines[acb.caretLine-1].y+12;
-					acb.caretSETupDownX = acb.caretPositionX = this.TextBox.x;
-					this.TextBox.activeBox.measured = false;
-				}else{
-					if(typeof acb.acceptedOrDeclined !== "undefined" && this.isFunction(acb.acceptedOrDeclined))
-						acb.acceptedOrDeclined.call(this, "OK");
-				}
-			}else{
-				// input
-		        var key = e.keyCode || e.which; // alternative to ternary - if there is no keyCode, use which
-	      		var keychar = String.fromCharCode(key);
-
-	      		var str = acb.lines[acb.caretLine].t;
-	      		setTextParams(this)
-	      		var dim = null;
-	      		if(acb.caretIndex>=0)
-	      		{
-		      		var left = str.substr(0, acb.caretIndex+1);
-					acb.lines[acb.caretLine].t = left+keychar+str.substr(acb.caretIndex+1, str.length-acb.caretIndex-1);
-					dim = this.context.measureText(left+keychar);
-				}else{
-					acb.lines[acb.caretLine].t = keychar+str;
-					dim = this.context.measureText(keychar);
-				}
-
-				acb.caretSETupDownX = acb.caretPositionX = dim.width + this.TextBox.x;
-				this.TextBox.activeBox.measured = false;
-				acb.caretIndex++;
-				// console.log(keychar)
-			}
 		}
 	}
-	function hitCursorToCaret(trs, lineIndex, x)
+	function hitCursorToCaret(trs, textbox, lineIndex, x)
 	{
-		var acb = trs.TextBox.activeBox;
+		// var acb = trs.TextBox.activeBox;
 
 		var avgindex = -1;
-		if(acb.lines[lineIndex].t.length > 0)
+		if(textbox.lines[lineIndex].t.length > 0)
 		{
-			avgindex = Math.floor((x-trs.TextBox.x) / acb.lines[lineIndex].davw)-1;
+			avgindex = Math.floor((x) / textbox.lines[lineIndex].davw)-1;
 			if(avgindex < -1)
 				avgindex = -1;
 			
 			setTextParams(trs);
 			
-			var tl = acb.lines[lineIndex].t.length;
-			var dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+			var tl = textbox.lines[lineIndex].t.length;
+			var dim = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex+1));
 
 			if(avgindex >= tl)
 			{	
@@ -2288,14 +2674,14 @@ truss_o.say();
 
 			}else{
 
-				while((dim.width + trs.TextBox.x < x) && avgindex >= 0 && avgindex < tl)
+				while((dim.width < x) && avgindex >= 0 && avgindex < tl)
 				{
 					avgindex ++;
-					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+					dim = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex+1));
 				}
-				var delta1 = dim.width + trs.TextBox.x - x;
-				var dim2 = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex));
-				//var delta2 = Math.abs(dim.width + trs.TextBox.x - x);
+				var delta1 = dim.width - x;
+				var dim2 = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex));
+				//var delta2 = Math.abs(dim.width + textbox.x - x);
 				if(delta1 > 3)
 				{	
 					avgindex--;
@@ -2304,115 +2690,197 @@ truss_o.say();
 				if(avgindex >= tl)
 				{	
 					avgindex = tl-1;
-					dim = trs.context.measureText(acb.lines[lineIndex].t.substr(0,avgindex+1));
+					dim = trs.context.measureText(textbox.lines[lineIndex].t.substr(0,avgindex+1));
 				}
 			}
 
-			acb.caretPositionX = dim.width + trs.TextBox.x;
+			textbox.caretPositionX = dim.width;
 		}else
 		{
-			acb.caretPositionX = trs.TextBox.x;
+			textbox.caretPositionX = 0;
 		}
-		acb.caretPositionY = acb.lines[lineIndex].y;
-		acb.caretIndex = avgindex;
-		acb.caretLine = lineIndex;
+		textbox.caretPositionY = 0;
+		textbox.caretIndex = avgindex;
+		textbox.caretLine = lineIndex;
 	}
-	function drawTextBox()
+	function scrolltoCaret(trs, textbox)
 	{
-		if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+		var carety = textbox.lines[textbox.caretLine].y - textbox.y ;
+		var caretx = textbox.caretPositionX;// - textbox.x;
+
+		if(caretx - textbox.scrollx  >= textbox.w)
 		{
-			this.SetShadow();
-			if(!this.TextBox.activeBox.measured)
-				drawTextBoxText(this, true);
-			drawTextBoxBackground(this);
-			drawTextBoxText(this, false);
+			textbox.scrollx = caretx - textbox.w + 44;
+
+			textbox.measured = false;
+		}else if(caretx - textbox.scrollx <= 0){
+			textbox.scrollx = caretx-44;
+			if(textbox.scrollx < 0)
+				textbox.scrollx = 0;
+			textbox.measured = false;
 		}
+
+		if(carety - textbox.scrolly+ textbox.fonth >= textbox.h)
+		{
+			textbox.scrolly = carety - textbox.h + 44;
+
+			textbox.measured = false;
+		}else if(carety - textbox.scrolly <= 0){
+			textbox.scrolly = carety-44;
+			if(textbox.scrolly < 0)
+				textbox.scrolly = 0;
+			textbox.measured = false;
+		}
+
 	}
-	function drawTextBoxBackground(trs)
+	// function drawTextBox()
+	// {
+	// 	if(this.TextBox.isOnDisplay || this.TextBox.activeBox.fadeOut)
+	// 	{
+	// 		this.SetShadow();
+	// 		if(!this.TextBox.activeBox.measured)
+	// 			drawTextBoxText(this, true);
+	// 		drawTextBoxBackground(this);
+	// 		drawTextBoxText(this, false);
+	// 	}
+	// }
+	function drawTextBoxBackground(trs, textbox)
 	{
 		var acb = trs.TextBox.activeBox;
-		trs.SetShadow(0,0,4,"rgba(255, 255, 255, "+Math.min(0.5,trs.TextBox.activeBox.fadeIn)+")");
+		trs.SetShadow(0,0,4,"rgba(255, 255, 255, "+Math.min(0.5,acb.fadeIn)+")");
 		
 		//255, 187, 40
-		trs.context.fillStyle = "rgba(255, 187, 40, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
-		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-4, trs.TextBox.width+4, trs.TextBox.height+4);
+		if(textbox.focus)
+			trs.context.fillStyle = "rgba(236, 244, 252, "+Math.min(0.9,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		else trs.context.fillStyle = "rgba(136, 136, 136, "+Math.min(0.7,acb.fadeIn)+")";
+		trs.context.fillRect(textbox.x-4, textbox.y-4, textbox.w+4, textbox.h+4);
 		trs.SetShadow();
-		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.8,trs.TextBox.activeBox.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
-		trs.context.fillRect(trs.TextBox.x-4, trs.TextBox.y-(4+12+2), trs.TextBox.width+4, 12+2);
+		trs.context.fillStyle = "rgba(111, 111, 111, "+Math.min(0.4,acb.fadeIn)+")";//"rgba(255, 255, 255, 0.6)";
+		trs.context.fillRect(textbox.x-4, textbox.y-(4+12+2), textbox.w+4, 12+2);
 		
-		trs.context.font = "8pt Verdana";
-		trs.context.fillStyle = "rgba(255, 255, 255, "+trs.TextBox.activeBox.fadeIn+")";
-		trs.context.fillText(trs.TextBox.activeBox.label+":", trs.TextBox.x, trs.TextBox.y-(12+2));
+		setTextParams(trs);
+		trs.context.font = "10px Verdana";
+		trs.context.fillStyle = "rgba(255, 255, 255, "+acb.fadeIn+")";
+		trs.context.fillText(textbox.label+":", textbox.x, textbox.y-4-2);
+
+		// scrollbars:
+		trs.context.fillStyle = "rgba(255, 0, 0, "+Math.min(.7,acb.fadeIn)+")";
+		if(textbox.multiline)
+		{
+			if(textbox.scrollchunkyh < textbox.h || textbox.scrolly > 0)
+			{
+				var hmaxscrl = textbox.h-4;
+				trs.context.fillRect(textbox.x+textbox.w-3, textbox.y+textbox.scrollchunkyy, 2, textbox.scrollchunkyh);
+			}
+
+		}
+
+		if(textbox.scrollchunkxw < textbox.w || textbox.scrollx > 0)
+		{
+			trs.context.fillRect(textbox.x+textbox.scrollchunkxx, textbox.y+textbox.h-(textbox.multiline?3:2), textbox.scrollchunkxw, textbox.multiline?2:1);
+		}
 	}
 
 	function setTextParams(trs)
 	{
 		trs.SetShadow();
-		trs.context.font = "10pt Verdana";
-		trs.context.textBaseline ="top";
+		trs.context.font = "13px Verdana";
+		trs.context.textBaseline = "bottom";// "top";
 		trs.context.textAlign = 'start';
 		trs.context.fillStyle = "rgba(0, 0, 0, "+trs.TextBox.activeBox.fadeIn+")";//"rgb(0, 0, 0)";
 	}
-	function drawTextBoxText(trs, measureOnly)
+	function drawTextBoxText(trs, textbox, measureOnly)
 	{
 		setTextParams(trs)
 		// ---
+		var textwidth = 0, textheight = 0;
+		if(measureOnly)
+		{
+			
+	    }else{
+	    	trs.context.save();
+	    	trs.context.beginPath();
+			trs.context.rect(textbox.x, textbox.y-4, textbox.w, textbox.h+4);
+	        trs.context.clip();
+	        // scroll here:
+	        trs.context.translate(-textbox.scrollx, -textbox.scrolly);
+	    }
 
-		var acb = trs.TextBox.activeBox;
-		for (var i = 0; i < acb.lines.length; i++) {
+		for (var i = 0; i < textbox.lines.length; i++) {
+
 			if(measureOnly)
 			{
-				var dim = trs.context.measureText(acb.lines[i].t);
-				acb.lines[i].w = dim.width;
-				acb.lines[i].davw = dim.width / acb.lines[i].t.length;
-				acb.lines[i].y = trs.TextBox.y + (i*12);
+				var dim = trs.context.measureText(textbox.lines[i].t);
+				textbox.lines[i].w = dim.width;
+				
+				textwidth = Math.max(textwidth, dim.width);
+
+				textbox.lines[i].davw = dim.width / textbox.lines[i].t.length;
+				textbox.lines[i].y = textbox.y + (i*textbox.fonth);
+
+				textheight = textbox.lines[i].y - textbox.y;
 			}
 			else
 			{		
-				trs.context.fillText(acb.lines[i].t, trs.TextBox.x, acb.lines[i].y);
+				trs.context.fillText(textbox.lines[i].t, textbox.x, textbox.lines[i].y+textbox.fonth);
 			}
-			if(!trs.TextBox.multiline)
+			if(!textbox.multiline)
 				break;
 		};
 		if(measureOnly)
 		{
-			trs.TextBox.activeBox.measured = true;
+			textbox.textwidth = textwidth;
+			textbox.textheight = textheight;
+			//                        aspect                   scroll area
+			var overheadh = textbox.h+textbox.scrolly-	textheight;
+			overheadh = overheadh > 0? overheadh:0;
+			textbox.scrollchunkyh = (textbox.h / (textheight+overheadh)) * textbox.h;
+			textbox.scrollchunkyy =  (textbox.h / (textheight+overheadh)) * textbox.scrolly;
+			//
+			var overhead = textbox.w+textbox.scrollx-	textwidth;
+			overhead = overhead > 0? overhead:0;
+			textbox.scrollchunkxw = (textbox.w / (textwidth+overhead)) * textbox.w;
+			textbox.scrollchunkxx =  (textbox.w / (textwidth+overhead)) * textbox.scrollx;
+
+			//
+			textbox.measured = true;
 			return;
+		}else{
+
+			// --- caret
+			if(textbox.focus)
+			{
+				trs.context.strokeStyle = "rgba(0, 0, 0, "+Math.min(trs.TextBox.activeBox.caretOnDisplay, trs.TextBox.activeBox.fadeIn)+")";
+				trs.context.beginPath();
+				trs.context.lineWidth = 1;
+				trs.context.moveTo(textbox.caretPositionX + textbox.x +.5, textbox.lines[textbox.caretLine].y + -2+1);
+				trs.context.lineTo(textbox.caretPositionX + textbox.x +.5, textbox.lines[textbox.caretLine].y + 2+10);
+				trs.context.closePath();
+		    	trs.context.stroke();
+		    }
+	    	trs.context.restore();
 		}
-		// ---
-		// var cop = trs.context.globalCompositeOperation;
-		// trs.context.globalCompositeOperation = "lighter";
-		trs.context.strokeStyle = "rgba(0, 0, 0, "+Math.min(acb.caretOnDisplay,acb.fadeIn)+")";
-		trs.context.beginPath();
-		trs.context.lineWidth = 1;
-		trs.context.moveTo(acb.caretPositionX+.5, acb.caretPositionY + -2+1);
-		trs.context.lineTo(acb.caretPositionX +.5, acb.caretPositionY + 2+10);
-		trs.context.closePath();
-    	trs.context.stroke();
-    	// trs.context.globalCompositeOperation = cop;
-
-		//trs.TextBox.activeBox.caretOnDisplay
 	}
-	function showTextBox(x, y, label, text, ismultiline, acceptedOrDeclined)
-	{
-		if(x === "right")
-		{
-			x = this.bounds.width - this.TextBox.width - 4; 
-		}
-		this.TextBox.x = x;
-		this.TextBox.y = y;
+	// function showTextBox(x, y, label, text, ismultiline, acceptedOrDeclined)
+	// {
+	// 	if(x === "right")
+	// 	{
+	// 		x = this.bounds.width - this.TextBox.width - 4; 
+	// 	}
+	// 	this.TextBox.x = x;
+	// 	this.TextBox.y = y;
 
-		this.TextBox.activeBox.acceptedOrDeclined = acceptedOrDeclined;
-		this.TextBox.activeBox.label = label;
-		this.TextBox.activeBox.text = text;
-		this.TextBox.activeBox.lines = [{t: text, w: 0, davw: 0, y: y}];
-		hitCursorToCaret(this, 0, x+1,y+1)
-		this.TextBox.activeBox.fadeIn = 0;
-		this.TextBox.activeBox.measured = false;
-		this.TextBox.isOnDisplay = true;
+	// 	this.TextBox.activeBox.acceptedOrDeclined = acceptedOrDeclined;
+	// 	this.TextBox.activeBox.label = label;
+	// 	this.TextBox.activeBox.text = text;
+	// 	this.TextBox.activeBox.lines = [{t: text, w: 0, davw: 0, y: y}];
+	// 	hitCursorToCaret(this, 0, x+1,y+1)
+	// 	this.TextBox.activeBox.fadeIn = 0;
+	// 	this.TextBox.activeBox.measured = false;
+	// 	this.TextBox.isOnDisplay = true;
 
-		this.update();	
-	}
+	// 	this.update();	
+	// }
 	function hideTextBox()
 	{
 		this.TextBox.isOnDisplay = false;
@@ -2559,7 +3027,7 @@ truss_o.say();
             this.context.shadowOffsetX = 0;
             this.context.shadowOffsetY = 0;
             this.context.shadowBlur = 0;
-            this.context.shadowColor = 0;
+            //this.context.shadowColor = 0;
         } else {
             this.context.shadowOffsetX = offsetX;
             this.context.shadowOffsetY = offsetY;
@@ -2716,8 +3184,8 @@ truss_o.say();
 			update:update
 		};
 
-		trs.option('view.dbg.backgroundColor1', "rgba(60, 78, 98, 1)");
-		trs.option('view.dbg.backgroundColor2', "rgba(35, 47, 59, 1)");
+		trs.option('view.dbg.backgroundColor1', "rgba(60, 78, 98, 1)");//"rgba(28, 48, 75, 1)");//"rgba(60, 78, 98, 1)");
+		trs.option('view.dbg.backgroundColor2', "rgba(35, 47, 59, 1)");//"rgba(11, 20, 31, 1)");//"rgba(35, 47, 59, 1)");
 
 		trs.addViewEngine("Debug", iface);
 		trs.setViewEngine("Debug");
@@ -2868,7 +3336,7 @@ truss_o.say();
 	    			//textbox connection
 						this.context.beginPath();
 				    	this.context.moveTo(this.objects[i].x+0.5, this.objects[i].y+0.5);
-						this.context.lineTo(this.TextBox.x- this.objs_translate.xoffset, this.TextBox.y- this.objs_translate.yoffset);
+						this.context.lineTo(this.EditPanel.x- this.objs_translate.xoffset, this.EditPanel.y- this.objs_translate.yoffset);
 				    	this.context.closePath();
 				    	this.context.fill();
 				    	this.context.stroke();
@@ -2981,8 +3449,11 @@ truss_o.say();
 			this.setLayer(menulayer);
 			this.Clear();
 
-			this.TextBoxRender();
+			//this.TextBoxRender();
 			this.RenderMenu(menulayer, menulayer);
+			// ui
+			this.RenderProxyPanels();
+			//
 			this.saveLayer();
 		}
 

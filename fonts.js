@@ -11,14 +11,18 @@
 				return name;
 
 			var newStyle = document.createElement('style');
+			var srcS = "src: ";
+			for (var i = 0; i < src.length; i++) {
+				srcS += (i>0?",":"") + "url(\"" + src[i] + "\") format(\"woff\")\n";
+			};
 			newStyle.appendChild(document.createTextNode(" \
 			@font-face { \
   font-family: \""+ name +"\"; \
- \
-  src: url(\""+src+"\") format(\"woff\"); \
+  "+srcS+"; \
   font-weight: normal; \
   font-style: normal; } \
 			"));
+			// src: url(\""+src+"\") format(\"woff\"); \
 			document.head.appendChild(newStyle);
 			this.fonts.familys.push(name);
 			
