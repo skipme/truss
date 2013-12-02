@@ -5,9 +5,9 @@
 				x: 0, y: 0, w: 0, h: 0,
 				visible: false,
 				bindings: [
-					{refName: 'i', 
-					relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, 
-					proxy: {}}
+					// {refName: 'i', 
+					// relative: {x: 0, y: 0, right: 0, bottom: 18, xrule: 'left', yrule: 'top', rrule: 'left', brule: 'abs'}, 
+					// proxy: {}}
 				],
 				addTextBox: addTextBox, addButton: addButton, getControl: getControl,
 				Show: FadeIn, Hide: FadeOut
@@ -68,6 +68,26 @@
 							proxy.focus = hittestrect(proxy.x, proxy.y, proxy.w, proxy.h, mx, my);
 						}	
 
+				}else if (keyboardDownEvent !== null)
+				{
+					if(keyboardDownEvent.keyCode === 9) // tab
+					{
+						for (var i = 0; i < panel.bindings.length; i++) {
+							var proxy = panel.bindings[i].proxy;
+							if(proxy.focus)
+							{
+								proxy.focus = false;
+								if(i+1 < panel.bindings.length)
+									panel.bindings[i +1].proxy.focus = true;
+								else if(i !== 0)
+									panel.bindings[0].proxy.focus = true;
+								else proxy.focus = true;
+
+								break;
+							}
+						}
+						return;
+					}
 				}
 
 				for (var i = 0; i < panel.bindings.length; i++) {

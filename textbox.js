@@ -4,7 +4,7 @@
 		trs.TextBox = { x: 0, y: 0, width: 128, height: 14, isOnDisplay: false, activeBox:
 		 {
 		 	multiline: false, label: "nolabel",
-		 	caretOnDisplay: 0.1, caretOnDisplayAlphaIncStep: 3*1.0/30, caretSETupDownX: 0, caretPositionX: 0,
+		 	caretOnDisplay: 1, caretOnDisplayAlphaIncStep: 3*1.0/30, caretSETupDownX: 0, caretPositionX: 0,
 		 	state: {isDragging: false, selection: {left: 0, right: 0}}, measured: false, caretLine: 0, caretIndex: 0,
 		 	text: "first line", lines: 
 		 	[{t: "first line", w: 0, davw: 0, y: 0}, {t: "second line", w: 0, davw: 0, y: 0}, 
@@ -73,7 +73,8 @@
 			this.lines[i] = {t: tlines[i], w: 0, davw: 0, y: 0};
 		};
 		this.measured = false;
-		this.scrollx = this.scrolly = this.caretIndex = this.caretLine = this.caretPositionX = 0;
+		this.scrollx = this.scrolly = this.caretLine = this.caretPositionX = 0;
+		this.caretIndex = -1;
 		this.text = text;
 	}
 	function getText()
@@ -270,7 +271,7 @@
 							this.measured = false;
 						}
 
-					}else if(e.keyCode == 27)
+					}else if(e.keyCode == 27) // esc
 					{
 						if(typeof this.acceptedOrDeclined !== "undefined" && trs.isFunction(this.acceptedOrDeclined))
 							this.acceptedOrDeclined.call(trs, "ESCAPE");

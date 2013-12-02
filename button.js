@@ -23,7 +23,7 @@
 			else 
 				trs.SetShadow();
 
-			trs.context.fillStyle = button.hover?"rgba(255, 255, 255, 1)" :"rgba(111, 111, 111, 1)";//"rgb(0, 0, 0)";
+			trs.context.fillStyle = (button.hover || button.focus)?"rgba(255, 255, 255, 1)" :"rgba(111, 111, 111, 1)";//"rgb(0, 0, 0)";
 		}
 		function renderButton(trs)
 		{
@@ -60,6 +60,13 @@
 
 				if(hittestrect(this.x, this.y, this.w, this.h, mx, my))
 				{ 
+					if(typeof this.callback !== "undefined" && trs.isFunction(this.callback))
+						this.callback.call();
+				}
+			}else if(keyboardDownEvent !== null && this.focus)
+			{
+				if(keyboardDownEvent.keyCode === 13)// enter
+				{
 					if(typeof this.callback !== "undefined" && trs.isFunction(this.callback))
 						this.callback.call();
 				}

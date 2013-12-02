@@ -128,6 +128,7 @@
 		var txt2= trs.objects[trs.editTextNode].labelRight;
 
 		trs.EditPanel.getControl(trs, "label").setText(txt||"");
+		trs.EditPanel.getControl(trs, "label").focus = true;
 		trs.EditPanel.getControl(trs, "label2").setText(txt2||"");
 		trs.EditPanel.getControl(trs, "bok").callback = function(){editAccepted.call(trs, "OK");}
 		trs.EditPanel.getControl(trs, "bc").callback = function(){editAccepted.call(trs, "Cancel");}
@@ -152,7 +153,7 @@
 		if(this.editTextNode === -1
 			&& e.keyCode === 13 && this.selectedNode >= 0)// enter pressed on selected node
 		{
-			//showTextBoxForSelectedNode(this);
+			showTextBoxForSelectedNode(this);
 			e.preventDefault();
 		}else
 		if(e.keyCode === 13 || e.keyCode === 8
